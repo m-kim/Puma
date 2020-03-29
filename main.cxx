@@ -49,75 +49,33 @@ void initializeReaders(std::string meshName)
 }
 vtkm::cont::DataSet readMesh()
 {
-    std::cout << "numNodes: " << numNodes << ", numTris " << numTris << ", numPhi " << numPhi << std::endl;
-//   adios2::Variable<double> coordVar = meshIO->InquireVariable<double>("/coordinates/values");
+   std::cout << "numNodes: " << numNodes << ", numTris " << numTris << ", numPhi " << numPhi << std::endl;
+   adios2::Variable<double> coordVar = meshIO->InquireVariable<double>("/coordinates/values");
 
-//  std::vector<double> buff;
-
-//  //const int newPhi = phiMultiplier * numPhi;
-//    int newPhi = numPhi;
-
-//   meshReader->Get(coordVar, buff, adios2::Mode::Sync);
-
-//   auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false, vtkm::CopyFlag::On);
-//  std::vector<int> ibuffc, ibuffn;
-
-//  //vtkDataArray *conn = NULL, *nextNode = NULL;
-//  // meshFile->ReadScalarData("/cell_set[0]/node_connect_list", timestate, &conn);
-//  // if (!meshFile->ReadScalarData("/nextnode", timestate, &nextNode))
-//  //     meshFile->ReadScalarData("nextnode", timestate, &nextNode);
-//  auto nodeConnectorVar = meshIO->InquireVariable<int>("/cell_set[0]/node_connect_list");
-//  auto nextNodeVar = meshIO->InquireVariable<int>("nextnode");
-//  if (!nodeConnectorVar || !nextNodeVar)
-//      return vtkm::cont::DataSet();
-
-//  meshReader->Get(nodeConnectorVar, ibuffc,adios2::Mode::Sync);
-//  //auto conn = vtkm::cont::make_ArrayHandle(ibuffc);
-
-//  meshReader->Get(nextNodeVar, ibuffn, adios2::Mode::Sync);
-//  if (ibuffn.size() < 1)
-//      return vtkm::cont::DataSet();
-
-////  std::ofstream fout[3];
-////  fout[0] = std::ofstream("coords.txt", std::ios::out);
-////  for (int i=0; i<buff.size(); i++){
-////      fout[0] << buff[i] << std::endl;
-////  }
-////  fout[0].close();
-////  fout[1] = std::ofstream("connect.txt", std::ios::out);
-////  for (int i=0; i<ibuffc.size(); i++){
-////      fout[1] << ibuffc[i] << std::endl;
-////  }
-////  fout[1].close();
-
-////  fout[2] = std::ofstream("next.txt", std::ios::out);
-////  for (int i=0; i<ibuffn.size(); i++){
-////      fout[2] << ibuffn[i] << std::endl;
-////  }
-////  fout[2].close();
-
-  std::vector<int> ibuffc, ibuffn;
   std::vector<double> buff;
-  std::ifstream fin[3];
-  fin[0] = std::ifstream("coords.txt", std::ios::in);
-  fin[1] = std::ifstream("connect.txt", std::ios::in);
-  fin[2] = std::ifstream("next.txt", std::ios::in);
 
-  const int newPhi = numPhi;
+  //const int newPhi = phiMultiplier * numPhi;
+  int newPhi = numPhi;
 
-  double ftmp = 0;
-  while (fin[0] >> ftmp){
-      buff.push_back(ftmp);
-  }
-  int tmp = 0;
-  while (fin[1] >> tmp){
-      ibuffc.push_back(tmp);
-  }
-  while(fin[2] >> tmp){
-      ibuffn.push_back(tmp);
-  }
-  fin[0].close(); fin[1].close(); fin[2].close();
+  meshReader->Get(coordVar, buff, adios2::Mode::Sync);
+
   auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false, vtkm::CopyFlag::On);
+  std::vector<int> ibuffc, ibuffn;
+
+  //vtkDataArray *conn = NULL, *nextNode = NULL;
+  // meshFile->ReadScalarData("/cell_set[0]/node_connect_list", timestate, &conn);
+  // if (!meshFile->ReadScalarData("/nextnode", timestate, &nextNode))
+  //     meshFile->ReadScalarData("nextnode", timestate, &nextNode);
+  auto nodeConnectorVar = meshIO->InquireVariable<int>("/cell_set[0]/node_connect_list");
+  auto nextNodeVar = meshIO->InquireVariable<int>("nextnode");
+  if (!nodeConnectorVar || !nextNodeVar)
+      return vtkm::cont::DataSet();
+
+  meshReader->Get(nodeConnectorVar, ibuffc,adios2::Mode::Sync);
+
+  meshReader->Get(nextNodeVar, ibuffn, adios2::Mode::Sync);
+  if (ibuffn.size() < 1)
+      return vtkm::cont::DataSet();
 
   auto connectivity = vtkm::cont::make_ArrayHandle(ibuffc, vtkm::CopyFlag::On);
   auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn, vtkm::CopyFlag::On);
@@ -163,17 +121,9 @@ void
 readValues(vtkm::cont::DataSet &ds)
 {
 
-//    auto var = fileIO->InquireVariable<double>("dpot");
+    auto var = fileIO->InquireVariable<double>("dpot");
     std::vector<double> buff;
-//    fileReader->Get(var, buff,adios2::Mode::Sync);
-//    std::ofstream fout("dpot.txt", std::ios::out);
-
-    std::ifstream fin("dpot.txt", std::ios::in);
-    double tmp = 0;
-    while(fin >> tmp){
-        buff.push_back(tmp);
-    }
-    fin.close();
+    fileReader->Get(var, buff,adios2::Mode::Sync);
     auto dpot = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On );
 
     ds.AddField(vtkm::cont::make_FieldPoint("pointvar",  dpot));
@@ -195,15 +145,15 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
 }
 void display()
 {
-        vtkm::cont::DataSet ds;
-    //initializeReaders("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/xgc.mesh.bp");
-    //if (fileReader->BeginStep() == adios2::StepStatus::OK){
+    vtkm::cont::DataSet ds;
+    initializeReaders("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/xgc.mesh.bp");
+    if (fileReader->BeginStep() == adios2::StepStatus::OK){
         ds = readMesh();
-        //fileReader->EndStep();
-    //}
+        fileReader->EndStep();
+    }
     try{
         int cnt = 0;
-        //while(fileReader->BeginStep() ==adios2::StepStatus::OK && running){
+        while(fileReader->BeginStep() ==adios2::StepStatus::OK && running){
             readValues(ds);
             vtkm::rendering::Camera camera;
             vtkm::cont::ColorTable colorTable("inferno");
@@ -233,9 +183,9 @@ void display()
             //renderer->Display(ds, canvas, fieldNm);
             fileReader->EndStep();
             cnt++;
-//        }
-//        fileReader->Close();
-//        MPI_Finalize();
+        }
+        fileReader->Close();
+        MPI_Finalize();
     }
     catch(int e){
         fileReader->EndStep();
@@ -250,7 +200,7 @@ int main()
 {
 //    renderer = std::make_unique<VTKmXeusRender>();
     MPI_Init(NULL,NULL);
-    //openADIOS();
+    openADIOS();
     display();
     fileReader->Close();
     MPI_Finalize();
