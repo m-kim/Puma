@@ -55,11 +55,11 @@ vtkm::cont::DataSet readMesh()
   std::vector<double> buff;
 
   //const int newPhi = phiMultiplier * numPhi;
-  int newPhi = numPhi/2;
+  int newPhi = numPhi/2 + 1; //+1 for the picket fence problem
 
   meshReader->Get(coordVar, buff, adios2::Mode::Sync);
 
-  auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false,vtkm::Pi()/newPhi, vtkm::CopyFlag::On);
+  auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false,vtkm::Pi()/(newPhi-1), vtkm::CopyFlag::On);
   std::vector<int> ibuffc, ibuffn;
 
   //vtkDataArray *conn = NULL, *nextNode = NULL;
@@ -79,7 +79,7 @@ vtkm::cont::DataSet readMesh()
 
   auto connectivity = vtkm::cont::make_ArrayHandle(ibuffc, vtkm::CopyFlag::On);
   auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn, vtkm::CopyFlag::On);
-  auto cells = vtkm::cont::make_CellSetExtrude(connectivity, coords, nextNode);
+  auto cells = vtkm::cont::make_CellSetExtrude(connectivity, coords, nextNode, false);
 
   vtkm::cont::DataSet ds;
   ds.AddCoordinateSystem(vtkm::cont::CoordinateSystem("coords", coords));
