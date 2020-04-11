@@ -55,11 +55,11 @@ vtkm::cont::DataSet readMesh()
   std::vector<double> buff;
 
   //const int newPhi = phiMultiplier * numPhi;
-  int newPhi = numPhi;
+  int newPhi = numPhi/2;
 
   meshReader->Get(coordVar, buff, adios2::Mode::Sync);
 
-  auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false, vtkm::CopyFlag::On);
+  auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false,vtkm::Pi()/newPhi, vtkm::CopyFlag::On);
   std::vector<int> ibuffc, ibuffn;
 
   //vtkDataArray *conn = NULL, *nextNode = NULL;
