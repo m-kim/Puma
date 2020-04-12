@@ -25,6 +25,63 @@ bool running = true;
 
 int numNodes, numTris, numPhi = 4, numTimeSteps;
 
+const auto
+parse(int argc, char **argv){
+  int x = 128;
+  int y = 128;
+  std::string meshpathname, filepathname, filename, meshname;
+  filepathname = meshpathname = std::string("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/");
+  meshname = std::string("xgc.mesh.bp");
+  filename = std::string("xgc.3d.bp");
+
+  for (int i=1; i<argc; i++){
+    if (!strcmp(argv[i], "-x")){
+      if (i+1 < argc)
+      {
+        x = atoi(argv[i+1]);
+        i += 1;
+      }
+
+    }
+    else if (!strcmp(argv[i], "-y"))
+    {
+      if (i+1 < argc){
+        y = atoi(argv[i+1]);
+        i += 1;
+      }
+    }
+    else if (!strcmp(argv[i], "-meshname"))
+    {
+      if (i+1 < argc){
+          meshname = std::string(argv[i+1]);
+          i++;
+      }
+    }
+    else if (!strcmp(argv[i], "-meshpathname"))
+    {
+      if (i+1 < argc){
+          meshpathname = std::string(argv[i+1]);
+          i++;
+      }
+    }
+    else if (!strcmp(argv[i], "-filename"))
+    {
+      if (i+1 < argc){
+          filename = std::string(argv[i+1]);
+          i++;
+      }
+    }
+    else if (!strcmp(argv[i], "-filepathname"))
+    {
+      if (i+1 < argc){
+          filepathname = std::string(argv[i+1]);
+          i++;
+      }
+    }
+  }
+  return std::make_tuple(x,y, meshpathname, meshname, filepathname, filename);
+}
+
 void initializeReaders(std::string meshName)
 {
     fileReader->BeginStep(adios2::StepMode::NextAvailable, 0.0f);
@@ -88,14 +145,13 @@ vtkm::cont::DataSet readMesh()
   return ds;
 
 }
-void openADIOS()
+void openADIOS(std::string filename)
 {
   adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
   mesh = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
 
   int numTimeSteps;
 
-  std::string filename("/home/adios/Tutorial/xgc/totalf_itg_tiny/xgc.3d.bp");
   fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
   fileIO->SetEngine("SST");
   meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));
@@ -143,10 +199,9 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
   camera.Azimuth(static_cast<vtkm::Float32>(45.0));
   camera.Elevation(static_cast<vtkm::Float32>(45.0));
 }
-void display()
+void display(int x, int y)
 {
     vtkm::cont::DataSet ds;
-    initializeReaders("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/xgc.mesh.bp");
     if (fileReader->BeginStep() == adios2::StepStatus::OK){
         ds = readMesh();
         fileReader->EndStep();
@@ -162,7 +217,7 @@ void display()
             vtkm::rendering::MapperRayTracer mapper;
             vtkm::rendering::Color background(1.0f, 1.0f, 1.0f, 1.0f);
             vtkm::rendering::Color foreground(0.0f, 0.0f, 0.0f, 1.0f);
-            vtkm::rendering::CanvasRayTracer canvas(128,128);
+            vtkm::rendering::CanvasRayTracer canvas(x,y);
             vtkm::rendering::Scene scene;
             scene.AddActor(vtkm::rendering::Actor(ds.GetCellSet(),
                                                   ds.GetCoordinateSystem(),
@@ -196,12 +251,16 @@ void display()
 }
 
 
-int main()
+int main(int argc, char **argv)
 {
+  auto tups = parse(argc, argv);
+  auto meshopen = std::get<2>(tups) + std::get<3>(tups);
+  auto fileopen = std::get<4>(tups) + std::get<5>(tups);
 //    renderer = std::make_unique<VTKmXeusRender>();
     MPI_Init(NULL,NULL);
-    openADIOS();
-    display();
+    openADIOS(fileopen);
+    initializeReaders(meshopen);
+    display(std::get<0>(tups), std::get<1>(tups));
     fileReader->Close();
     MPI_Finalize();
 
