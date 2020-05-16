@@ -69,14 +69,13 @@ vtkm::cont::DataSet XgcExtrudeCompute::readMesh()
 
 }
 
-void XgcExtrudeCompute::openADIOS()
+void XgcExtrudeCompute::openADIOS(std::string filename)
 {
   adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
   mesh = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
 
   int numTimeSteps;
 
-  std::string filename("/home/adios/Tutorial/xgc/totalf_itg_tiny/xgc.3d.bp");
   fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
   fileIO->SetEngine("SST");
   meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));

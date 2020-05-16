@@ -21,7 +21,7 @@ public:
     vtkm::cont::DataSet readMesh();
     void readValues(vtkm::cont::DataSet &ds);
 
-    void openADIOS();
+    void openADIOS(std::string filename);
 };
 #endif
 

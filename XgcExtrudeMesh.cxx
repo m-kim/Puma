@@ -177,3 +177,32 @@ XgcExtrudeMesh::readValues()
     
     return ds;
 }
+
+void XgcExtrudeMesh::openADIOS(std::string filename)
+{
+  adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
+  mesh = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
+
+  int numTimeSteps;
+
+  fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
+  fileIO->SetEngine("SST");
+  meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));
+  meshIO->SetEngine("BP");
+
+   fileReader = std::make_unique<adios2::Engine>(fileIO->Open(filename, adios2::Mode::Read));
+  std::cout << "Open " << filename << std::endl;
+  std::cout << __FILE__ << " " << __LINE__ << std::endl;
+
+  const auto variables = fileIO->AvailableVariables();
+  std::cout << variables.size() << std::endl;
+
+  for (const auto variablePair : variables) {
+    std::cout << "Name: " << variablePair.first;
+
+    for (const auto &parameter : variablePair.second) {
+      std::cout << "\t" << parameter.first << ": " << parameter.second << "\n";
+    }
+  }
+
+}

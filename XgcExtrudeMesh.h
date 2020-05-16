@@ -19,15 +19,15 @@
 class XgcExtrudeMesh
 {
 public:
-
-    const int phiMultiplier = 8;
-    int numNodes, numTris, numPhi, numTimeSteps;
-
-    bool running = true;
     std::unique_ptr<adios2::IO> fileIO;
     std::unique_ptr<adios2::IO> meshIO;
-
+    std::unique_ptr<adios2::ADIOS> adios;
+    std::unique_ptr<adios2::ADIOS> mesh;
     std::unique_ptr<adios2::Engine> fileReader, meshReader;
+    bool running = true;
+
+    int numNodes, numTris, numPhi = 4, numTimeSteps;
+
 
     vtkm::cont::ArrayHandle<vtkm::Id> wedgeConn;
     vtkm::cont::ArrayHandle<vtkm::Vec<double,3>> points;
@@ -38,6 +38,7 @@ public:
                 std::unique_ptr<adios2::IO> &meshIO,
                 std::unique_ptr<adios2::Engine> &meshReader);
 
+    void openADIOS(std::string filename);
     vtkm::cont::DataSet readValues();
 };
 
