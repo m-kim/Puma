@@ -1,18 +1,21 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(TestHarness VERSION 0.1 LANGUAGES C CXX)
+project(Puma VERSION 0.1 LANGUAGES C CXX)
 
 enable_language(Fortran)
 
 find_package(VTKm REQUIRED)
 find_package(ADIOS2 REQUIRED)
 find_package(MPI REQUIRED)
-set(TestHarnessSrc
+set(PumaSrc
+        XgcExtrudeCompute.cxx
+        XgcExtrudeMesh.cxx
         main.cxx)
-add_executable(TestHarness ${TestHarnessSrc})
-set_target_properties(TestHarness PROPERTIES CXX_STANDARD 14)
+add_executable(Puma ${PumaSrc})
+set_target_properties(Puma PROPERTIES CXX_STANDARD 14)
 
-target_link_libraries(TestHarness PUBLIC
+target_link_libraries(Puma PUBLIC
+    vtkm_cont
     vtkm_rendering
     MPI::MPI_C
     MPI::MPI_CXX
