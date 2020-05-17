@@ -26,6 +26,7 @@ void XgcExtrudeCompute::initializeReaders(std::string meshName)
 }
 
 vtkm::cont::DataSet XgcExtrudeCompute::readMesh()
+
 {
    std::cout << "numNodes: " << numNodes << ", numTris " << numTris << ", numPhi " << numPhi << std::endl;
    adios2::Variable<double> coordVar = meshIO->InquireVariable<double>("/coordinates/values");

@@ -23,9 +23,7 @@ void XgcExtrudeMesh::initializeReaders(std::string meshName)
     }
 }
 
-vtkm::cont::DataSet XgcExtrudeMesh::readMesh(
-            std::unique_ptr<adios2::IO> &meshIO,
-            std::unique_ptr<adios2::Engine> &meshReader)
+vtkm::cont::DataSet XgcExtrudeMesh::readMesh()
 {
     
     std::cout << "numNodes: " << numNodes << ", numTris " << numTris << ", numPhi " << numPhi << std::endl;
@@ -160,12 +158,11 @@ auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn);
 
 }
 
-vtkm::cont::DataSet 
-XgcExtrudeMesh::readValues()
+void XgcExtrudeMesh::readValues(vtkm::cont::DataSet &ds)
 {
-    vtkm::cont::DataSetBuilderExplicit builder;
-    vtkm::cont::DataSet ds;
-    ds = builder.Create(points, vtkm::CellShapeTagWedge(), 6, wedgeConn);
+    // vtkm::cont::DataSetBuilderExplicit builder;
+    // vtkm::cont::DataSet ds;
+    // ds = builder.Create(points, vtkm::CellShapeTagWedge(), 6, wedgeConn);
 
     auto var = fileIO->InquireVariable<double>("dpot");
     std::vector<double> buff;
@@ -175,7 +172,7 @@ XgcExtrudeMesh::readValues()
     ds.AddField(vtkm::cont::Field("pointvar", vtkm::cont::Field::Association::POINTS,
                                 dpot));
     
-    return ds;
+    //return ds;
 }
 
 void XgcExtrudeMesh::openADIOS(std::string filename)

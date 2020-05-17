@@ -1,15 +1,17 @@
 #ifndef XGCEXTRUDECOMPUTE_H
 #define XGCEXTRUDECOMPUTE_H
+#include "XgcExtrude.h"
 
 #include <adios2.h>
 #include <mpi.h>
 #include <vtkm/cont/DataSet.h>
 
-class XgcExtrudeCompute
+class XgcExtrudeCompute : public XgcExtrude
 {
 public:
     std::unique_ptr<adios2::IO> fileIO;
     std::unique_ptr<adios2::IO> meshIO;
+
     std::unique_ptr<adios2::ADIOS> adios;
     std::unique_ptr<adios2::ADIOS> mesh;
     std::unique_ptr<adios2::Engine> fileReader, meshReader;
@@ -19,6 +21,7 @@ public:
 
     void initializeReaders(std::string meshName);
     vtkm::cont::DataSet readMesh();
+
     void readValues(vtkm::cont::DataSet &ds);
 
     void openADIOS(std::string filename);

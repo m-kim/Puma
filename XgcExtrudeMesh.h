@@ -1,6 +1,8 @@
 #ifndef XGCEXTRUDEMESH_H
 #define XGCEXTRUDEMESH_H
 
+#include "XgcExtrude.h"
+
 #include <vtkm/cont/DeviceAdapter.h>
 #include <vtkm/cont/testing/MakeTestDataSet.h>
 #include <vtkm/cont/testing/Testing.h>
@@ -16,7 +18,7 @@
 
 #include <memory.h>
 
-class XgcExtrudeMesh
+class XgcExtrudeMesh : public XgcExtrude
 {
 public:
     std::unique_ptr<adios2::IO> fileIO;
@@ -34,12 +36,10 @@ public:
 
     void initializeReaders(std::string meshName);
 
-    vtkm::cont::DataSet readMesh(
-                std::unique_ptr<adios2::IO> &meshIO,
-                std::unique_ptr<adios2::Engine> &meshReader);
+    vtkm::cont::DataSet readMesh();
 
     void openADIOS(std::string filename);
-    vtkm::cont::DataSet readValues();
+    void readValues(vtkm::cont::DataSet &ds);
 };
 
 #endif
