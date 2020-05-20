@@ -2,7 +2,7 @@
 #include <vtkm/cont/ArrayHandleExtrudeCoords.h>
 #include <vtkm/cont/CellSetExtrude.h>
 
-void XgcExtrudeCompute::initializeReaders(std::string meshName)
+void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diagName)
 {
     fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
 

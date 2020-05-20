@@ -8,7 +8,7 @@ class XgcExtrude
 {
 public:
 
-    virtual void initializeReaders(std::string meshName) = 0;
+    virtual void initializeReaders(std::string meshName, std::string diagName) = 0;
 
     virtual vtkm::cont::DataSet readMesh() = 0;
 

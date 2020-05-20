@@ -121,13 +121,13 @@ public:
   }
 
   typedef void ControlSignature(
-                                FieldIn<>,
-                                WholeArrayIn<>,
-                                FieldIn<>,
-                                FieldIn<>,
-                                FieldIn<>,
-                                FieldIn<>,
-                                WholeArrayOut<>);
+                                FieldIn,
+                                WholeArrayIn,
+                                FieldIn,
+                                FieldIn,
+                                FieldIn,
+                                FieldIn,
+                                WholeArrayOut);
 
 
   typedef void ExecutionSignature(
@@ -225,15 +225,15 @@ public:
   }
 
   typedef void ControlSignature(
-                                FieldIn<>,
-                                WholeArrayIn<>,
-                                FieldIn<>,
-                                FieldIn<>,
-                                FieldIn<>,
-                                FieldIn<>,
-                                WholeArrayIn<>,
-                                FieldIn<>,
-                                WholeArrayOut<>);
+                                FieldIn,
+                                WholeArrayIn,
+                                FieldIn,
+                                FieldIn,
+                                FieldIn,
+                                FieldIn,
+                                WholeArrayIn,
+                                FieldIn,
+                                WholeArrayOut);
 
 
   typedef void ExecutionSignature(
@@ -346,9 +346,9 @@ public:
   }
 
   typedef void ControlSignature(
-                                FieldIn<>,
-                                WholeArrayIn<>,
-                                FieldInOut<>);
+                                FieldIn,
+                                WholeArrayIn,
+                                FieldInOut);
 
 
   typedef void ExecutionSignature(_1, _2, _3);
@@ -423,11 +423,11 @@ public:
   }
 
   typedef void ControlSignature(
-                                FieldIn<>,
-                                FieldIn<>,
-                                WholeArrayIn<>,
-                                WholeArrayIn<>,
-                                FieldInOut<>);
+                                FieldIn,
+                                FieldIn,
+                                WholeArrayIn,
+                                WholeArrayIn,
+                                FieldInOut);
 
 
   typedef void ExecutionSignature(_1, _2, _3, _4, _5);
@@ -562,9 +562,9 @@ public:
   }
 
   typedef void ControlSignature(
-                                FieldInOut<>,
-                                FieldInOut<>,
-                                FieldInOut<>);
+                                FieldInOut,
+                                FieldInOut,
+                                FieldInOut);
 
 
   typedef void ExecutionSignature(_1, _2, _3);

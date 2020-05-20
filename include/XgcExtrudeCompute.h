@@ -19,7 +19,8 @@ public:
 
     int numNodes, numTris, numPhi = 4, numTimeSteps;
 
-    void initializeReaders(std::string meshName);
+    void initializeReaders(std::string meshName, std::string diagName);
+
     vtkm::cont::DataSet readMesh();
 
     void readValues(vtkm::cont::DataSet &ds);

@@ -1,6 +1,7 @@
 set(HEADER_LIST ${puma_SOURCE_DIR}/include/XgcExtrudeCompute.h
 ${puma_SOURCE_DIR}/include/XgcExtrudeMesh.h
 ${puma_SOURCE_DIR}/include/XgcExtrude.h
+${puma_SOURCE_DIR}/include/TurbulenceWorklets.h
 )
 
 set(SOURCE_LIST

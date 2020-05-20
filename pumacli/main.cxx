@@ -3,10 +3,6 @@
 
 
 #include <sstream>
-
-#include "XgcExtrudeMesh.h"
-#include "XgcExtrudeCompute.h"
-
 #include <vtkm/cont/CoordinateSystem.h>
 #include <vtkm/cont/CoordinateSystem.hxx>
 #include <vtkm/cont/ArrayHandleExtrudeCoords.h> 
@@ -18,6 +14,10 @@
 #include <vtkm/rendering/Scene.h>
 #include <vtkm/rendering/MapperRayTracer.h>
 #include <vtkm/rendering/Camera.h>
+
+#include "XgcExtrudeMesh.h"
+#include "XgcExtrudeCompute.h"
+#include "TurbulenceWorklets.h"
 
 XgcExtrudeCompute exrt;
 
@@ -144,6 +144,7 @@ void display(int x, int y)
 }
 
 
+
 int main(int argc, char **argv)
 {
   auto tups = parse(argc, argv);
@@ -153,7 +154,8 @@ int main(int argc, char **argv)
     MPI_Init(NULL,NULL);
 
     exrt.openADIOS(fileopen);
-    exrt.initializeReaders(meshopen);
+    //TODO: need diag
+    exrt.initializeReaders(meshopen, meshopen);
     display(std::get<0>(tups), std::get<1>(tups));
     exrt.fileReader->Close();
 

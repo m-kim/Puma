@@ -21,11 +21,9 @@
 class XgcExtrudeMesh : public XgcExtrude
 {
 public:
-    std::unique_ptr<adios2::IO> fileIO;
-    std::unique_ptr<adios2::IO> meshIO;
-    std::unique_ptr<adios2::ADIOS> adios;
-    std::unique_ptr<adios2::ADIOS> mesh;
-    std::unique_ptr<adios2::Engine> fileReader, meshReader;
+    std::unique_ptr<adios2::IO> fileIO, meshIO, diagIO;
+    std::unique_ptr<adios2::ADIOS> adios, mesh, diag;
+    std::unique_ptr<adios2::Engine> fileReader, meshReader, diagReader;
     bool running = true;
 
     int numNodes, numTris, numPhi = 4, numTimeSteps;
@@ -34,12 +32,14 @@ public:
     vtkm::cont::ArrayHandle<vtkm::Id> wedgeConn;
     vtkm::cont::ArrayHandle<vtkm::Vec<double,3>> points;
 
-    void initializeReaders(std::string meshName);
+    void initializeReaders(std::string meshName, std::string diagName);
 
     vtkm::cont::DataSet readMesh();
 
     void openADIOS(std::string filename);
     void readValues(vtkm::cont::DataSet &ds);
+    vtkm::cont::ArrayHandle<double> GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature);
+
 };
 
 #endif

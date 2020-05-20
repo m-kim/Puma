@@ -1,9 +1,11 @@
 #include "XgcExtrudeMesh.h"
+#include "TurbulenceWorklets.h"
 
-void XgcExtrudeMesh::initializeReaders(std::string meshName)
+void XgcExtrudeMesh::initializeReaders(std::string meshName, std::string diagName)
 {
     fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
 
+    diagReader = std::make_unique<adios2::Engine>(diagIO->Open(diagName, adios2::Mode::Read));
     meshReader = std::make_unique<adios2::Engine>(meshIO->Open(meshName, adios2::Mode::Read));
     
     adios2::Variable<int> nVar = meshIO->InquireVariable<int>("n_n");
@@ -184,6 +186,8 @@ void XgcExtrudeMesh::openADIOS(std::string filename)
 
   fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
   fileIO->SetEngine("SST");
+  diagIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
+  diagIO->SetEngine("SST");
   meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));
   meshIO->SetEngine("BP");
 
@@ -202,4 +206,103 @@ void XgcExtrudeMesh::openADIOS(std::string filename)
     }
   }
 
+}
+
+vtkm::cont::ArrayHandle<double>
+XgcExtrudeMesh::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
+{
+    typedef VTKM_DEFAULT_DEVICE_ADAPTER_TAG DeviceAdapter;
+
+    //mark: assume that we don't have numphi, numNodes
+    numPhi = -1; numNodes = -1; numTris = -1;
+    auto var = meshIO->InquireVariable<int>("nphi");
+    if (var){
+        meshReader->Get(var, &numPhi, adios2::Mode::Sync);
+    }
+    var = meshIO->InquireVariable<int>("n_n");
+    if (var){
+        meshReader->Get(var, &numNodes,adios2::Mode::Sync);
+
+    }
+    var = meshIO->InquireVariable<int>("n_t");
+    if (var){
+        meshReader->Get(var, &numTris,adios2::Mode::Sync);
+    }
+
+    std::vector<double> buff;
+
+    vtkm::cont::ArrayHandle<double> pot0, potm0, dpot, psi;
+    auto vard = fileIO->InquireVariable<double>("dpot");
+    fileReader->Get(vard, buff, adios2::Mode::Sync);
+    dpot = vtkm::cont::make_ArrayHandle(buff);
+
+    vard = fileIO->InquireVariable<double>("pot0");
+    fileReader->Get(vard, buff, adios2::Mode::Sync);
+    pot0 = vtkm::cont::make_ArrayHandle(buff);
+
+    vard = fileIO->InquireVariable<double>("potm0");
+    fileReader->Get(vard, buff, adios2::Mode::Sync);
+    potm0 = vtkm::cont::make_ArrayHandle(buff);
+
+    vard = fileIO->InquireVariable<double>("psi");
+    fileReader->Get(vard, buff, adios2::Mode::Sync);
+    psi = vtkm::cont::make_ArrayHandle(buff);
+
+    vtkm::cont::ArrayHandle<double> psid, dens, temp1, temp2;
+    vard = diagIO->InquireVariable<double>("psi_mks");
+    diagReader->Get(vard, buff, adios2::Mode::Sync);
+    psid = vtkm::cont::make_ArrayHandle(buff);
+
+    vard = diagIO->InquireVariable<double>("i_gc_density_1d");
+    diagReader->Get(vard, buff, adios2::Mode::Sync);
+    dens = vtkm::cont::make_ArrayHandle(buff);
+
+    vard = diagIO->InquireVariable<double>("i_perp_temperature_df_1d");
+    diagReader->Get(vard, buff, adios2::Mode::Sync);
+    temp1 = vtkm::cont::make_ArrayHandle(buff);
+
+    vard = diagIO->InquireVariable<double>("i_parallel_mean_en_df_1d");
+    diagReader->Get(vard, buff, adios2::Mode::Sync);
+    temp2 = vtkm::cont::make_ArrayHandle(buff);
+
+    vtkm::cont::ArrayHandle<double> temp;
+    temp.Allocate(temp1.GetNumberOfValues());
+    // temp.PrepareForInPlace(DeviceAdapter());
+    // temp1.PrepareForInPlace(DeviceAdapter());
+    // temp2.PrepareForInPlace(DeviceAdapter());
+    typedef typename vtkm::worklet::DispatcherMapField<Evaluate<AvgTemp<double, double>>>
+      AvgTempWorkletDispatchType;
+    AvgTemp<double, double> evalAvg(2.0,3.0);
+    Evaluate<AvgTemp<double,double>> AvgWorklet(evalAvg);
+    AvgTempWorkletDispatchType avgDispatch(AvgWorklet);
+    avgDispatch.Invoke(temp1,temp2, temp);
+
+
+
+    DoInterpolate<double, DeviceAdapter> doInterp;
+    auto te = doInterp.Run(psid,temp,psi);
+    auto de = doInterp.Run(psid, dens, psi);
+
+    DoMean<double, DeviceAdapter> doMean;
+
+    DoiTurbulence<double, DeviceAdapter> doTurb;
+    auto arr = doTurb.Run(dpot,
+        pot0,
+        potm0,
+        te,
+        de,
+        numPhi,
+        numNodes);
+
+    // vtkm::cont::DataSet ds;
+    // vtkm::cont::DataSetBuilderExplicit builder;
+    // ds = builder.Create(arr);
+    // return ds;
+
+    int nt = arr.GetNumberOfValues();
+    int nPlane = te.GetNumberOfValues();
+    temperature.Allocate(nt);
+    for (int i = 0; i < nt; i++)
+        temperature.GetPortalControl().Set(i, te.GetPortalControl().Get(i%nPlane));
+    return arr;
 }
