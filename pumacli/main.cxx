@@ -91,7 +91,7 @@ parse(int argc, char **argv){
       }
     }
   }
-  return std::make_tuple(x,y, meshpathname, meshname, filepathname, filename);
+  return std::make_tuple(x,y, meshpathname, meshname, filepathname, filename, diagpathname, diagname);
 }
 
 inline void SetCamera(vtkm::rendering::Camera& camera,

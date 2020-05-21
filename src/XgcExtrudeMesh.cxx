@@ -166,13 +166,15 @@ void XgcExtrudeMesh::readValues(vtkm::cont::DataSet &ds)
     // vtkm::cont::DataSet ds;
     // ds = builder.Create(points, vtkm::CellShapeTagWedge(), 6, wedgeConn);
 
-    auto var = fileIO->InquireVariable<double>("dpot");
-    std::vector<double> buff;
-    fileReader->Get(var, buff,adios2::Mode::Sync);
-    auto dpot = vtkm::cont::make_ArrayHandle(buff);
+//    auto var = fileIO->InquireVariable<double>("dpot");
+//    std::vector<double> buff;
+//    fileReader->Get(var, buff,adios2::Mode::Sync);
+//    auto dpot = vtkm::cont::make_ArrayHandle(buff);
+    vtkm::cont::ArrayHandle<double> temperature;
 
+    auto output =  GetiTurbulence(temperature);
     ds.AddField(vtkm::cont::Field("pointvar", vtkm::cont::Field::Association::POINTS,
-                                dpot));
+                                output));
     
     //return ds;
 }
