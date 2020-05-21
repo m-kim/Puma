@@ -211,7 +211,6 @@ void XgcExtrudeMesh::openADIOS(std::string filename)
 vtkm::cont::ArrayHandle<double>
 XgcExtrudeMesh::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
 {
-    typedef VTKM_DEFAULT_DEVICE_ADAPTER_TAG DeviceAdapter;
 
     //mark: assume that we don't have numphi, numNodes
     numPhi = -1; numNodes = -1; numTris = -1;
@@ -279,13 +278,13 @@ XgcExtrudeMesh::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
 
 
 
-    DoInterpolate<double, DeviceAdapter> doInterp;
+    DoInterpolate<double> doInterp;
     auto te = doInterp.Run(psid,temp,psi);
     auto de = doInterp.Run(psid, dens, psi);
 
-    DoMean<double, DeviceAdapter> doMean;
+    DoMean<double> doMean;
 
-    DoiTurbulence<double, DeviceAdapter> doTurb;
+    DoiTurbulence<double> doTurb;
     auto arr = doTurb.Run(dpot,
         pot0,
         potm0,

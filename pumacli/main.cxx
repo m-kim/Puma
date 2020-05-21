@@ -27,10 +27,11 @@ parse(int argc, char **argv){
   int x = 128;
   int y = 128;
   std::string meshpathname, filepathname, filename, meshname;
-  filepathname = meshpathname = std::string("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/");
+  std::string diagpathname, diagname;
+  diagpathname = filepathname = meshpathname = std::string("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/");
   meshname = std::string("xgc.mesh.bp");
   filename = std::string("xgc.3d.bp");
-
+  diagname = std::string("xgc.oneddiag.bp");
   for (int i=1; i<argc; i++){
     if (!strcmp(argv[i], "-x")){
       if (i+1 < argc)
@@ -58,6 +59,20 @@ parse(int argc, char **argv){
     {
       if (i+1 < argc){
           meshpathname = std::string(argv[i+1]);
+          i++;
+      }
+    }
+    else if (!strcmp(argv[i], "-diagname"))
+    {
+      if (i+1 < argc){
+          diagname = std::string(argv[i+1]);
+          i++;
+      }
+    }
+    else if (!strcmp(argv[i], "-diagpathname"))
+    {
+      if (i+1 < argc){
+          diagpathname = std::string(argv[i+1]);
           i++;
       }
     }
@@ -150,6 +165,7 @@ int main(int argc, char **argv)
   auto tups = parse(argc, argv);
   auto meshopen = std::get<2>(tups) + std::get<3>(tups);
   auto fileopen = std::get<4>(tups) + std::get<5>(tups);
+  auto diagopen = std::get<6>(tups) + std::get<7>(tups);
 //    renderer = std::make_unique<VTKmXeusRender>();
     MPI_Init(NULL,NULL);
 

@@ -7,7 +7,7 @@
 #include <vtkm/cont/Field.h>
 #include <vtkm/cont/ArrayHandle.h>
 #include <vtkm/cont/ArrayHandleCounting.h>
-#include <vtkm/cont/DeviceAdapterAlgorithm.h>
+#include <vtkm/cont/Algorithm.h>
 #include <vtkm/cont/ArrayHandleTransform.h>
 #include <vtkm/cont/ArrayHandleCast.h>
 
@@ -69,7 +69,7 @@ public:
   OutType
   Run(vtkm::cont::ArrayHandle<FieldType> &vals)
   {
-    typedef typename vtkm::cont::DeviceAdapterAlgorithm<DeviceAdapter> DeviceAlgorithms;
+    
 
 
     const FieldType initVal = 0.0;
@@ -78,7 +78,7 @@ public:
           vals, NanFunctor<FieldType>(0.0));
 
     //get the sum of the array, ignoring NaN
-    FieldType sum = DeviceAlgorithms::Reduce(nanzeroed_out, initVal, vtkm::Sum());
+    FieldType sum = vtkm::cont::Algorithm::Reduce(nanzeroed_out, initVal, vtkm::Sum());
     //Count the non-NaN.
     auto nanflagged_out =
         vtkm::cont::make_ArrayHandleTransform<vtkm::cont::ArrayHandle<FieldType>>(
@@ -86,7 +86,7 @@ public:
 
     auto nanflagged_sum = vtkm::cont::make_ArrayHandleCast<FieldType>(nanflagged_out);
 
-    vtkm::Id cnt = DeviceAlgorithms::Reduce(nanflagged_sum, initVal, vtkm::Sum());
+    vtkm::Id cnt = vtkm::cont::Algorithm::Reduce(nanflagged_sum, initVal, vtkm::Sum());
 
 
     //Set the NaN values to something large to be ignored
@@ -102,7 +102,7 @@ public:
     //CastAndCall2 does not support ArrayHandleTransform?
     OutType true_out;
     true_out.Allocate(vals.GetNumberOfValues());
-    DeviceAlgorithms::Copy(handle_out, true_out);
+    vtkm::cont::Algorithm::Copy(handle_out, true_out);
     return true_out;
   }
 };
@@ -163,7 +163,7 @@ public:
   }
   vtkm::Id numNodes, numPhi;
 };
-template<typename FieldType, typename DeviceAdapter>
+template<typename FieldType>
 class DoiTurbulence
 {
 public:
@@ -193,12 +193,12 @@ public:
     vtkm::cont::ArrayHandle<FieldType> arrOut;
     arrOut.Allocate(dpot.GetNumberOfValues());
 
-    dpot.PrepareForInPlace(DeviceAdapter());
-    pot0.PrepareForInPlace(DeviceAdapter());
-    potm0.PrepareForInPlace(DeviceAdapter());
-    te.PrepareForInPlace(DeviceAdapter());
-    de.PrepareForInPlace(DeviceAdapter());
-    arrOut.PrepareForInPlace(DeviceAdapter());
+    // dpot.PrepareForInPlace(DeviceAdapter());
+    // pot0.PrepareForInPlace(DeviceAdapter());
+    // potm0.PrepareForInPlace(DeviceAdapter());
+    // te.PrepareForInPlace(DeviceAdapter());
+    // de.PrepareForInPlace(DeviceAdapter());
+    // arrOut.PrepareForInPlace(DeviceAdapter());
 
     dispatch.Invoke(idx,
       dpot,
@@ -379,7 +379,7 @@ public:
   vtkm::Id numPhi, numNodes;
 };
 
-template<typename FieldType, typename DeviceAdapter>
+template<typename FieldType>
 class DoMean
 {
 public:
@@ -404,8 +404,8 @@ public:
     vtkm::cont::ArrayHandle<FieldType> meanEden;
     meanEden.Allocate(numNodes);
     
-    eden.PrepareForInPlace(DeviceAdapter());
-    meanEden.PrepareForInPlace(DeviceAdapter());
+    // eden.PrepareForInPlace(DeviceAdapter());
+    // meanEden.PrepareForInPlace(DeviceAdapter());
     dispatch.Invoke(idx, eden, meanEden);
 
     return meanEden;
@@ -589,7 +589,7 @@ public:
   EvaluatorType eval;
 };
 
-template<typename FieldType, typename DeviceAdapter>
+template<typename FieldType>
 class DoInterpolate
 {
 public:
@@ -625,10 +625,10 @@ public:
     Evaluate<SetMax<FieldType, bool>> MaxWorklet(evalMax);
     MinWorkletDispatchType minDispatch(MinWorklet);
     MaxWorkletDispatchType maxDispatch(MaxWorklet);
-    xi.PrepareForInPlace(DeviceAdapter());
-    yi.PrepareForInPlace(DeviceAdapter());
-    x.PrepareForInPlace(DeviceAdapter());
-    y.PrepareForInPlace(DeviceAdapter());
+    // xi.PrepareForInPlace(DeviceAdapter());
+    // yi.PrepareForInPlace(DeviceAdapter());
+    // x.PrepareForInPlace(DeviceAdapter());
+    // y.PrepareForInPlace(DeviceAdapter());
 
     vtkm::cont::ArrayHandle<bool> tag;
     tag.Allocate(xi.GetNumberOfValues());
