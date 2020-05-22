@@ -183,13 +183,13 @@ void XgcExtrudeMesh::openADIOS(std::string filename)
 {
   adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
   mesh = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
-
+  diag = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
   int numTimeSteps;
 
   fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
   fileIO->SetEngine("SST");
-  diagIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
-  diagIO->SetEngine("SST");
+  diagIO = std::make_unique<adios2::IO>(diag->DeclareIO("BP"));
+  diagIO->SetEngine("BP");
   meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));
   meshIO->SetEngine("BP");
 
@@ -216,9 +216,9 @@ XgcExtrudeMesh::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
 
     //mark: assume that we don't have numphi, numNodes
     numPhi = -1; numNodes = -1; numTris = -1;
-    auto var = meshIO->InquireVariable<int>("nphi");
+    auto var = fileIO->InquireVariable<int>("nphi");
     if (var){
-        meshReader->Get(var, &numPhi, adios2::Mode::Sync);
+        fileReader->Get(var, &numPhi, adios2::Mode::Sync);
     }
     var = meshIO->InquireVariable<int>("n_n");
     if (var){
