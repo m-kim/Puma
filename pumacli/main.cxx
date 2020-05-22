@@ -105,19 +105,18 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
   camera = vtkm::rendering::Camera();
   camera.ResetToBounds(b);
   camera.Azimuth(static_cast<vtkm::Float32>(45.0));
-  camera.Elevation(static_cast<vtkm::Float32>(45.0));
+  camera.Elevation(static_cast<vtkm::Float32>(-90.0));
 }
 void display(int x, int y)
 {
-    vtkm::cont::DataSet ds;
     if (exrt.fileReader->BeginStep() == adios2::StepStatus::OK){
-        ds = exrt.readMesh();
+        exrt.readMesh();
         exrt.fileReader->EndStep();
     }
     try{
         int cnt = 0;
         while(exrt.fileReader->BeginStep() ==adios2::StepStatus::OK){
-            exrt.readValues(ds);
+            exrt.readValues();
             vtkm::rendering::Camera camera;
             vtkm::cont::ColorTable colorTable("inferno");
 
@@ -127,12 +126,12 @@ void display(int x, int y)
             vtkm::rendering::Color foreground(0.0f, 0.0f, 0.0f, 1.0f);
             vtkm::rendering::CanvasRayTracer canvas(x,y);
             vtkm::rendering::Scene scene;
-            scene.AddActor(vtkm::rendering::Actor(ds.GetCellSet(),
-                                                  ds.GetCoordinateSystem(),
-                                                  ds.GetField(fieldNm),
+            scene.AddActor(vtkm::rendering::Actor(exrt.ds.GetCellSet(),
+                                                  exrt.ds.GetCoordinateSystem(),
+                                                  exrt.ds.GetField(fieldNm),
                                                   colorTable));
-            SetCamera(camera, ds.GetCoordinateSystem().GetBounds(),
-                      ds.GetField(fieldNm));
+            SetCamera(camera, exrt.ds.GetCoordinateSystem().GetBounds(),
+                      exrt.ds.GetField(fieldNm));
 
             vtkm::rendering::View3D view(scene, mapper, canvas, camera, background, foreground );
             view.Initialize();

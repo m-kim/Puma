@@ -4,7 +4,7 @@
 
 void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diagName)
 {
-    fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
+    fileReader->BeginStep(adios2::StepMode::NextAvailable, 0.0f);
 
     meshReader = std::make_unique<adios2::Engine>(meshIO->Open(meshName, adios2::Mode::Read));
     
@@ -25,7 +25,7 @@ void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diag
     }
 }
 
-vtkm::cont::DataSet XgcExtrudeCompute::readMesh()
+void XgcExtrudeCompute::readMesh()
 
 {
    std::cout << "numNodes: " << numNodes << ", numTris " << numTris << ", numPhi " << numPhi << std::endl;
@@ -39,8 +39,8 @@ vtkm::cont::DataSet XgcExtrudeCompute::readMesh()
   meshReader->Get(coordVar, buff, adios2::Mode::Sync);
 
   //TODO: go back to how it was before
-  //auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false,vtkm::Pi()/(newPhi-1), vtkm::CopyFlag::On);
-  auto coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false, vtkm::CopyFlag::On);
+  coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false,vtkm::Pi()/(newPhi-1), vtkm::CopyFlag::On);
+  //coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false, vtkm::CopyFlag::On);
   std::vector<int> ibuffc, ibuffn;
 
   //vtkDataArray *conn = NULL, *nextNode = NULL;
@@ -49,24 +49,23 @@ vtkm::cont::DataSet XgcExtrudeCompute::readMesh()
   //     meshFile->ReadScalarData("nextnode", timestate, &nextNode);
   auto nodeConnectorVar = meshIO->InquireVariable<int>("/cell_set[0]/node_connect_list");
   auto nextNodeVar = meshIO->InquireVariable<int>("nextnode");
-  if (!nodeConnectorVar || !nextNodeVar)
-      return vtkm::cont::DataSet();
+  // if (!nodeConnectorVar || !nextNodeVar)
+  //     return vtkm::cont::DataSet();
 
   meshReader->Get(nodeConnectorVar, ibuffc,adios2::Mode::Sync);
 
   meshReader->Get(nextNodeVar, ibuffn, adios2::Mode::Sync);
-  if (ibuffn.size() < 1)
-      return vtkm::cont::DataSet();
+  // if (ibuffn.size() < 1)
+  //     return vtkm::cont::DataSet();
 
   auto connectivity = vtkm::cont::make_ArrayHandle(ibuffc, vtkm::CopyFlag::On);
   auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn, vtkm::CopyFlag::On);
-  auto cells = vtkm::cont::make_CellSetExtrude(connectivity, coords, nextNode, false);
+  cells = vtkm::cont::make_CellSetExtrude(connectivity, coords, nextNode, false);
 
-  vtkm::cont::DataSet ds;
   ds.AddCoordinateSystem(vtkm::cont::CoordinateSystem("coords", coords));
   ds.SetCellSet(cells);
 
-  return ds;
+  //return ds;
 
 }
 
@@ -100,13 +99,17 @@ void XgcExtrudeCompute::openADIOS(std::string filename)
 }
 
 
-void XgcExtrudeCompute::readValues(vtkm::cont::DataSet &ds)
+void XgcExtrudeCompute::readValues()
 {
 
     auto var = fileIO->InquireVariable<double>("dpot");
     std::vector<double> buff;
     fileReader->Get(var, buff,adios2::Mode::Sync);
     auto dpot = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On );
+
+    ds = vtkm::cont::DataSet();
+    ds.AddCoordinateSystem(vtkm::cont::CoordinateSystem("coords", coords));
+    ds.SetCellSet(cells);
 
     ds.AddField(vtkm::cont::make_FieldPoint("pointvar",  dpot));
     

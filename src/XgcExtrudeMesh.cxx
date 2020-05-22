@@ -3,7 +3,7 @@
 
 void XgcExtrudeMesh::initializeReaders(std::string meshName, std::string diagName)
 {
-    fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
+    fileReader->BeginStep(adios2::StepMode::NextAvailable, 0.0f);
 
     diagReader = std::make_unique<adios2::Engine>(diagIO->Open(diagName, adios2::Mode::Read));
     meshReader = std::make_unique<adios2::Engine>(meshIO->Open(meshName, adios2::Mode::Read));
@@ -25,7 +25,7 @@ void XgcExtrudeMesh::initializeReaders(std::string meshName, std::string diagNam
     }
 }
 
-vtkm::cont::DataSet XgcExtrudeMesh::readMesh()
+void XgcExtrudeMesh::readMesh()
 {
     
     std::cout << "numNodes: " << numNodes << ", numTris " << numTris << ", numPhi " << numPhi << std::endl;
@@ -38,7 +38,7 @@ std::vector<double> buff;
 
 meshReader->Get(coordVar, buff, adios2::Mode::Sync);
 
-auto coords = vtkm::cont::make_ArrayHandle(buff);
+coords = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 std::vector<int> ibuffc, ibuffn;
 
 //vtkDataArray *conn = NULL, *nextNode = NULL;
@@ -47,15 +47,15 @@ std::vector<int> ibuffc, ibuffn;
 //     meshFile->ReadScalarData("nextnode", timestate, &nextNode);
 auto nodeConnectorVar = meshIO->InquireVariable<int>("/cell_set[0]/node_connect_list");
 auto nextNodeVar = meshIO->InquireVariable<int>("nextnode");
-if (!nodeConnectorVar || !nextNodeVar)
-    return vtkm::cont::DataSet();
+// if (!nodeConnectorVar || !nextNodeVar)
+//     return vtkm::cont::DataSet();
 
 meshReader->Get(nodeConnectorVar, ibuffc,adios2::Mode::Sync);
 auto conn = vtkm::cont::make_ArrayHandle(ibuffc);
 
 meshReader->Get(nextNodeVar, ibuffn, adios2::Mode::Sync);
-if (ibuffn.size() < 1)
-    return vtkm::cont::DataSet();
+// if (ibuffn.size() < 1)
+//     return vtkm::cont::DataSet();
 
 auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn);
 //Create the points.
@@ -132,7 +132,6 @@ auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn);
             j += 6;
         }
     vtkm::cont::DataSetBuilderExplicit builder;
-    vtkm::cont::DataSet ds;
     ds = builder.Create(points, vtkm::CellShapeTagWedge(), 6, wedgeConn);
 
     
@@ -156,11 +155,11 @@ auto nextNode = vtkm::cont::make_ArrayHandle(ibuffn);
 //                                     vars.size(), 
 //                                     vtkm::cont::make_ArrayHandle(vars, vtkm::CopyFlag::On)));
 
-    return ds;
+    //return ds;
 
 }
 
-void XgcExtrudeMesh::readValues(vtkm::cont::DataSet &ds)
+void XgcExtrudeMesh::readValues()
 {
     // vtkm::cont::DataSetBuilderExplicit builder;
     // vtkm::cont::DataSet ds;
@@ -173,6 +172,10 @@ void XgcExtrudeMesh::readValues(vtkm::cont::DataSet &ds)
     vtkm::cont::ArrayHandle<double> temperature;
 
     auto output =  GetiTurbulence(temperature);
+
+    vtkm::cont::DataSetBuilderExplicit builder;
+    ds = builder.Create(points, vtkm::CellShapeTagWedge(), 6, wedgeConn);
+
     ds.AddField(vtkm::cont::Field("pointvar", vtkm::cont::Field::Association::POINTS,
                                 output));
     

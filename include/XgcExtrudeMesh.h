@@ -34,12 +34,14 @@ public:
 
     void initializeReaders(std::string meshName, std::string diagName);
 
-    vtkm::cont::DataSet readMesh();
+    void readMesh();
 
     void openADIOS(std::string filename);
-    void readValues(vtkm::cont::DataSet &ds);
+    void readValues();
     vtkm::cont::ArrayHandle<double> GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature);
 
+    vtkm::cont::DataSet ds;
+    vtkm::cont::ArrayHandle<double> coords;
 };
 
 #endif

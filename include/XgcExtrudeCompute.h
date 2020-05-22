@@ -21,11 +21,16 @@ public:
 
     void initializeReaders(std::string meshName, std::string diagName);
 
-    vtkm::cont::DataSet readMesh();
+    void readMesh();
 
-    void readValues(vtkm::cont::DataSet &ds);
+    void readValues();
 
     void openADIOS(std::string filename);
+
+
+    vtkm::cont::DataSet ds;
+    vtkm::cont::CellSetExtrude cells;
+    vtkm::cont::ArrayHandleExtrudeCoords<double> coords;
 };
 #endif
 
