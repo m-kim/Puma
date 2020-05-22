@@ -5,8 +5,10 @@ ${puma_SOURCE_DIR}/include/TurbulenceWorklets.h
 )
 
 set(SOURCE_LIST
+        XgcExtrude.cxx
         XgcExtrudeCompute.cxx
-        XgcExtrudeMesh.cxx)
+        XgcExtrudeMesh.cxx
+        )
 
 add_library(puma ${SOURCE_LIST} ${HEADER_LIST})
 target_include_directories(puma PUBLIC ../include)
