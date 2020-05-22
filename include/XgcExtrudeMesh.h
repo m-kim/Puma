@@ -30,7 +30,6 @@ public:
 
     void readValues();
 
-    vtkm::cont::DataSet ds;
     vtkm::cont::ArrayHandle<double> coords;
 };
 

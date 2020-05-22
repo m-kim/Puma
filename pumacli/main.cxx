@@ -19,7 +19,7 @@
 #include "XgcExtrudeCompute.h"
 #include "TurbulenceWorklets.h"
 
-XgcExtrudeCompute exrt;
+std::unique_ptr<XgcExtrude> exrt;
 
 
 const auto
@@ -27,11 +27,13 @@ parse(int argc, char **argv){
   int x = 128;
   int y = 128;
   std::string meshpathname, filepathname, filename, meshname;
-  std::string diagpathname, diagname;
+  std::string diagpathname, diagname, extrudetype;
   diagpathname = filepathname = meshpathname = std::string("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/");
   meshname = std::string("xgc.mesh.bp");
   filename = std::string("xgc.3d.bp");
   diagname = std::string("xgc.oneddiag.bp");
+  extrudetype = std::string("compute");
+
   for (int i=1; i<argc; i++){
     if (!strcmp(argv[i], "-x")){
       if (i+1 < argc)
@@ -90,8 +92,21 @@ parse(int argc, char **argv){
           i++;
       }
     }
+    else if (!strcmp(argv[i], "-extrudetype"))
+    {
+      if (i+1 < argc){
+          extrudetype = std::string(argv[i+1]);
+          i++;
+      }
+    }
   }
-  return std::make_tuple(x,y, meshpathname, meshname, filepathname, filename, diagpathname, diagname);
+
+  if (extrudetype == "compute"){
+    return std::make_tuple(x,y, meshpathname, meshname, filepathname, filename, diagpathname, diagname, 0);
+  }
+  else
+    return std::make_tuple(x,y, meshpathname, meshname, filepathname, filename, diagpathname, diagname, 1);
+
 }
 
 inline void SetCamera(vtkm::rendering::Camera& camera,
@@ -109,14 +124,14 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
 }
 void display(int x, int y)
 {
-    if (exrt.fileReader->BeginStep() == adios2::StepStatus::OK){
-        exrt.readMesh();
-        exrt.fileReader->EndStep();
+    if (exrt->fileReader->BeginStep() == adios2::StepStatus::OK){
+        exrt->readMesh();
+        exrt->fileReader->EndStep();
     }
     try{
         int cnt = 0;
-        while(exrt.fileReader->BeginStep() ==adios2::StepStatus::OK){
-            exrt.readValues();
+        while(exrt->fileReader->BeginStep() ==adios2::StepStatus::OK){
+            exrt->readValues();
             vtkm::rendering::Camera camera;
             vtkm::cont::ColorTable colorTable("inferno");
 
@@ -126,12 +141,12 @@ void display(int x, int y)
             vtkm::rendering::Color foreground(0.0f, 0.0f, 0.0f, 1.0f);
             vtkm::rendering::CanvasRayTracer canvas(x,y);
             vtkm::rendering::Scene scene;
-            scene.AddActor(vtkm::rendering::Actor(exrt.ds.GetCellSet(),
-                                                  exrt.ds.GetCoordinateSystem(),
-                                                  exrt.ds.GetField(fieldNm),
+            scene.AddActor(vtkm::rendering::Actor(exrt->ds.GetCellSet(),
+                                                  exrt->ds.GetCoordinateSystem(),
+                                                  exrt->ds.GetField(fieldNm),
                                                   colorTable));
-            SetCamera(camera, exrt.ds.GetCoordinateSystem().GetBounds(),
-                      exrt.ds.GetField(fieldNm));
+            SetCamera(camera, exrt->ds.GetCoordinateSystem().GetBounds(),
+                      exrt->ds.GetField(fieldNm));
 
             vtkm::rendering::View3D view(scene, mapper, canvas, camera, background, foreground );
             view.Initialize();
@@ -143,15 +158,15 @@ void display(int x, int y)
               view.SaveAs(sstr.str());
 
             //renderer->Display(ds, canvas, fieldNm);
-            exrt.fileReader->EndStep();
+            exrt->fileReader->EndStep();
             cnt++;
         }
-        exrt.fileReader->Close();
+        exrt->fileReader->Close();
         MPI_Finalize();
     }
     catch(int e){
-        exrt.fileReader->EndStep();
-        exrt.fileReader->Close();
+        exrt->fileReader->EndStep();
+        exrt->fileReader->Close();
         MPI_Finalize();
     }
 
@@ -166,15 +181,19 @@ int main(int argc, char **argv)
   auto fileopen = std::get<4>(tups) + std::get<5>(tups);
   auto diagopen = std::get<6>(tups) + std::get<7>(tups);
 //    renderer = std::make_unique<VTKmXeusRender>();
-    MPI_Init(NULL,NULL);
+   MPI_Init(NULL,NULL);
+  if (std::get<8>(tups))
+    exrt = std::make_unique<XgcExtrudeMesh>();
+  else
+  exrt = std::make_unique<XgcExtrudeCompute>();
 
-    exrt.openADIOS(fileopen);
-    //TODO: need diag
-    exrt.initializeReaders(meshopen, meshopen);
-    display(std::get<0>(tups), std::get<1>(tups));
-    exrt.fileReader->Close();
+  exrt->openADIOS(fileopen);
+  //TODO: need diag
+  exrt->initializeReaders(meshopen, meshopen);
+  display(std::get<0>(tups), std::get<1>(tups));
+  exrt->fileReader->Close();
 
-    MPI_Finalize();
+  MPI_Finalize();
 
 }
 
