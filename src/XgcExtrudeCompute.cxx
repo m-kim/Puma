@@ -4,7 +4,7 @@
 
 void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diagName)
 {
-    fileReader->BeginStep(adios2::StepMode::NextAvailable, 0.0f);
+    fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
 
     meshReader = std::make_unique<adios2::Engine>(meshIO->Open(meshName, adios2::Mode::Read));
     
