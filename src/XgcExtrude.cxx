@@ -3,22 +3,19 @@
 #include <kittie.h>
 #include "TurbulenceWorklets.h"
 
-void XgcExtrude::openADIOS(std::string filename)
+void XgcExtrude::openADIOS(std::string fp, std::string fn, MPI_Comm comm)
 {
-  adios = adios2::ADIOS(MPI_COMM_WORLD);
-  mesh = adios2::ADIOS(MPI_COMM_WORLD);
-  diag = adios2::ADIOS(MPI_COMM_WORLD);
+  filename = fn;
+  kittie::initialize(comm, adios2::DebugON);
+  adios = adios2::ADIOS(comm);
+  mesh = adios2::ADIOS(comm);
+  diag = adios2::ADIOS(comm);
   int numTimeSteps;
 
-  kittie::initialize(MPI_COMM_WORLD, adios2::DebugON);
-  fileIO = adios2::IO(adios.DeclareIO("SST"));
-  fileIO.SetEngine("SST");
-  diagIO = adios2::IO(diag.DeclareIO("BP"));
-  diagIO.SetEngine("BP");
-  meshIO = adios2::IO(mesh.DeclareIO("BP"));
-  meshIO.SetEngine("BP");
 
-   fileReader = adios2::Engine(fileIO.Open(filename, adios2::Mode::Read));
+  fileIO = kittie::declare_io(filename);
+
+   fileReader = kittie::open(filename, fp+filename + ".bp", adios2::Mode::Read, comm);
   std::cout << "Open " << filename << std::endl;
   std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
@@ -135,4 +132,21 @@ XgcExtrude::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
    for (int i = 0; i < nt; i++)
        temperature.GetPortalControl().Set(i, te.GetPortalControl().Get(i%nPlane));
    return arr;
+}
+
+adios2::StepStatus XgcExtrude::beginStep()
+{
+  auto status = kittie::Couplers[filename]->begin_step();
+  fileReader = kittie::Couplers[filename]->engine;
+
+  return status;
+}
+
+void XgcExtrude::endStep()
+{
+  kittie::Couplers[filename]->end_step();
+}
+void XgcExtrude::close()
+{
+  kittie::Couplers[filename]->close();
 }

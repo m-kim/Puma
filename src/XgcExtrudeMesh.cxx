@@ -1,12 +1,21 @@
 #include "XgcExtrudeMesh.h"
 #include "TurbulenceWorklets.h"
+#include <kittie.h>
 
-void XgcExtrudeMesh::initializeReaders(std::string meshName, std::string diagName)
+void XgcExtrudeMesh::initializeReaders(std::string mp, std::string mn, 
+                                        std::string dp, std::string dn, MPI_Comm comm)
 {
-    fileReader.BeginStep(adios2::StepMode::Read, 0.0f);
+    meshName = mn;
+    diagName = dn;
+    kittie::Couplers[filename]->begin_step(0.0f);
+    this->fileReader = kittie::Couplers[filename]->engine;
 
-    diagReader = adios2::Engine(diagIO.Open(diagName, adios2::Mode::Read));
-    meshReader = adios2::Engine(meshIO.Open(meshName, adios2::Mode::Read));
+    diagIO = kittie::declare_io(diagName);
+    meshIO = kittie::declare_io(meshName);
+
+
+    diagReader = kittie::open(diagName, dp+diagName + ".bp", adios2::Mode::Read, comm);
+    meshReader = kittie::open(meshName, mp+meshName + ".bp", adios2::Mode::Read, comm);
     
     adios2::Variable<int> nVar = meshIO.InquireVariable<int>("n_n");
     adios2::Variable<int> triVar = meshIO.InquireVariable<int>("n_t");
@@ -180,4 +189,12 @@ void XgcExtrudeMesh::readValues()
                                 output));
     
     //return ds;
+}
+
+
+void XgcExtrudeMesh::close()
+{
+    XgcExtrude::close();
+    kittie::Couplers[meshName]->close();
+    kittie::Couplers[diagName]->close();
 }

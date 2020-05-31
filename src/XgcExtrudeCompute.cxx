@@ -2,11 +2,14 @@
 #include <vtkm/cont/ArrayHandleExtrudeCoords.h>
 #include <vtkm/cont/CellSetExtrude.h>
 
-void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diagName)
+void XgcExtrudeCompute::initializeReaders(std::string mp, std::string mn,
+                                            std::string dp, std::string dn,
+                                            MPI_Comm comm)
 {
+
     fileReader.BeginStep(adios2::StepMode::Read, 0.0f);
 
-    meshReader = adios2::Engine(meshIO.Open(meshName, adios2::Mode::Read));
+    meshReader = adios2::Engine(meshIO.Open(mp+mn+".bp", adios2::Mode::Read));
     
     adios2::Variable<int> nVar = meshIO.InquireVariable<int>("n_n");
     adios2::Variable<int> triVar = meshIO.InquireVariable<int>("n_t");
@@ -85,4 +88,9 @@ void XgcExtrudeCompute::readValues()
 
     ds.AddField(vtkm::cont::make_FieldPoint("pointvar",  dpot));
     
+}
+
+void XgcExtrudeCompute::close()
+{
+    XgcExtrude::close();
 }
