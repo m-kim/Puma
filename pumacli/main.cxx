@@ -124,13 +124,13 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
 }
 void display(int x, int y)
 {
-    if (exrt->fileReader->BeginStep() == adios2::StepStatus::OK){
+    if (exrt->fileReader.BeginStep() == adios2::StepStatus::OK){
         exrt->readMesh();
-        exrt->fileReader->EndStep();
+        exrt->fileReader.EndStep();
     }
     try{
         int cnt = 0;
-        while(exrt->fileReader->BeginStep() ==adios2::StepStatus::OK){
+        while(exrt->fileReader.BeginStep() ==adios2::StepStatus::OK){
             exrt->readValues();
             vtkm::rendering::Camera camera;
             vtkm::cont::ColorTable colorTable("inferno");
@@ -158,15 +158,15 @@ void display(int x, int y)
               view.SaveAs(sstr.str());
 
             //renderer->Display(ds, canvas, fieldNm);
-            exrt->fileReader->EndStep();
+            exrt->fileReader.EndStep();
             cnt++;
         }
-        exrt->fileReader->Close();
+        exrt->fileReader.Close();
         MPI_Finalize();
     }
     catch(int e){
-        exrt->fileReader->EndStep();
-        exrt->fileReader->Close();
+        exrt->fileReader.EndStep();
+        exrt->fileReader.Close();
         MPI_Finalize();
     }
 
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
   //TODO: need diag
   exrt->initializeReaders(meshopen, meshopen);
   display(std::get<0>(tups), std::get<1>(tups));
-  exrt->fileReader->Close();
+  exrt->fileReader.Close();
 
   MPI_Finalize();
 

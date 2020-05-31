@@ -1,26 +1,28 @@
 #include "XgcExtrude.h"
 
+#include <kittie.h>
 #include "TurbulenceWorklets.h"
 
 void XgcExtrude::openADIOS(std::string filename)
 {
-  adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
-  mesh = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
-  diag = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
+  adios = adios2::ADIOS(MPI_COMM_WORLD);
+  mesh = adios2::ADIOS(MPI_COMM_WORLD);
+  diag = adios2::ADIOS(MPI_COMM_WORLD);
   int numTimeSteps;
 
-  fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
-  fileIO->SetEngine("SST");
-  diagIO = std::make_unique<adios2::IO>(diag->DeclareIO("BP"));
-  diagIO->SetEngine("BP");
-  meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));
-  meshIO->SetEngine("BP");
+  kittie::initialize(MPI_COMM_WORLD, adios2::DebugON);
+  fileIO = adios2::IO(adios.DeclareIO("SST"));
+  fileIO.SetEngine("SST");
+  diagIO = adios2::IO(diag.DeclareIO("BP"));
+  diagIO.SetEngine("BP");
+  meshIO = adios2::IO(mesh.DeclareIO("BP"));
+  meshIO.SetEngine("BP");
 
-   fileReader = std::make_unique<adios2::Engine>(fileIO->Open(filename, adios2::Mode::Read));
+   fileReader = adios2::Engine(fileIO.Open(filename, adios2::Mode::Read));
   std::cout << "Open " << filename << std::endl;
   std::cout << __FILE__ << " " << __LINE__ << std::endl;
 
-  const auto variables = fileIO->AvailableVariables();
+  const auto variables = fileIO.AvailableVariables();
   std::cout << variables.size() << std::endl;
 
   for (const auto variablePair : variables) {
@@ -39,58 +41,58 @@ XgcExtrude::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
 
     //mark: assume that we don't have numphi, numNodes
     numPhi = -1; numNodes = -1; numTris = -1;
-    auto var = fileIO->InquireVariable<int>("nphi");
+    auto var = fileIO.InquireVariable<int>("nphi");
     if (var){
-        fileReader->Get(var, &numPhi, adios2::Mode::Sync);
+        fileReader.Get(var, &numPhi, adios2::Mode::Sync);
     }
-    var = meshIO->InquireVariable<int>("n_n");
+    var = meshIO.InquireVariable<int>("n_n");
     if (var){
-        meshReader->Get(var, &numNodes,adios2::Mode::Sync);
+        meshReader.Get(var, &numNodes,adios2::Mode::Sync);
 
     }
-    var = meshIO->InquireVariable<int>("n_t");
+    var = meshIO.InquireVariable<int>("n_t");
     if (var){
-        meshReader->Get(var, &numTris,adios2::Mode::Sync);
+        meshReader.Get(var, &numTris,adios2::Mode::Sync);
     }
 
     std::vector<double> buff;
 
     vtkm::cont::ArrayHandle<double> pot0, potm0, dpot, psi;
-    auto vard = fileIO->InquireVariable<double>("dpot");
-    fileReader->Get(vard, buff, adios2::Mode::Sync);
+    auto vard = fileIO.InquireVariable<double>("dpot");
+    fileReader.Get(vard, buff, adios2::Mode::Sync);
     dpot = vtkm::cont::make_ArrayHandle(buff);
     
-   auto varP0 = fileIO->InquireVariable<double>("pot0");
-   auto varPm0 = fileIO->InquireVariable<double>("potm0");
-   auto vpsi = fileIO->InquireVariable<double>("psi");
-   auto vmks = diagIO->InquireVariable<double>("psi_mks");
-   auto vdens = diagIO->InquireVariable<double>("i_gc_density_1d");
-   auto vtemp1 = diagIO->InquireVariable<double>("i_perp_temperature_df_1d");
-   auto vtemp2 = diagIO->InquireVariable<double>("i_parallel_mean_en_df_1d");
+   auto varP0 = fileIO.InquireVariable<double>("pot0");
+   auto varPm0 = fileIO.InquireVariable<double>("potm0");
+   auto vpsi = fileIO.InquireVariable<double>("psi");
+   auto vmks = diagIO.InquireVariable<double>("psi_mks");
+   auto vdens = diagIO.InquireVariable<double>("i_gc_density_1d");
+   auto vtemp1 = diagIO.InquireVariable<double>("i_perp_temperature_df_1d");
+   auto vtemp2 = diagIO.InquireVariable<double>("i_parallel_mean_en_df_1d");
 
     if (!varP0 || !varPm0 || !vpsi || !vmks || !vdens || !vtemp1 || !vtemp2)
         return dpot;
     
-   fileReader->Get(varP0, buff, adios2::Mode::Sync);
+   fileReader.Get(varP0, buff, adios2::Mode::Sync);
    pot0 = vtkm::cont::make_ArrayHandle(buff);
 
-   fileReader->Get(varPm0, buff, adios2::Mode::Sync);
+   fileReader.Get(varPm0, buff, adios2::Mode::Sync);
    potm0 = vtkm::cont::make_ArrayHandle(buff);
 
-   fileReader->Get(vpsi, buff, adios2::Mode::Sync);
+   fileReader.Get(vpsi, buff, adios2::Mode::Sync);
    psi = vtkm::cont::make_ArrayHandle(buff);
 
    vtkm::cont::ArrayHandle<double> psid, dens, temp1, temp2;
-   diagReader->Get(vmks, buff, adios2::Mode::Sync);
+   diagReader.Get(vmks, buff, adios2::Mode::Sync);
    psid = vtkm::cont::make_ArrayHandle(buff);
 
-   diagReader->Get(vdens, buff, adios2::Mode::Sync);
+   diagReader.Get(vdens, buff, adios2::Mode::Sync);
    dens = vtkm::cont::make_ArrayHandle(buff);
 
-   diagReader->Get(vtemp1, buff, adios2::Mode::Sync);
+   diagReader.Get(vtemp1, buff, adios2::Mode::Sync);
    temp1 = vtkm::cont::make_ArrayHandle(buff);
 
-   diagReader->Get(vtemp2, buff, adios2::Mode::Sync);
+   diagReader.Get(vtemp2, buff, adios2::Mode::Sync);
    temp2 = vtkm::cont::make_ArrayHandle(buff);
 
    vtkm::cont::ArrayHandle<double> temp;
