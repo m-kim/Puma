@@ -4,7 +4,7 @@
 
 void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diagName)
 {
-    fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
+    //fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
 
     meshReader = std::make_unique<adios2::Engine>(meshIO->Open(meshName, adios2::Mode::Read));
     
@@ -23,6 +23,7 @@ void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diag
         fileReader->Get(phiVar, &numPhi, adios2::Mode::Sync);
         std::cout << "phi: " << numPhi << std::endl;
     }
+    
 }
 
 void XgcExtrudeCompute::readMesh()
@@ -39,7 +40,7 @@ void XgcExtrudeCompute::readMesh()
   meshReader->Get(coordVar, buff, adios2::Mode::Sync);
 
   //TODO: go back to how it was before
-  coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false,vtkm::Pi()/(newPhi-1), vtkm::CopyFlag::On);
+  coords = vtkm::cont::make_ArrayHandleExtrudeCoords( vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On), newPhi, false,vtkm::Pi());
   //coords = vtkm::cont::make_ArrayHandleExtrudeCoords(buff, newPhi, false, vtkm::CopyFlag::On);
   std::vector<int> ibuffc, ibuffn;
 

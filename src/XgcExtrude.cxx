@@ -9,8 +9,8 @@ void XgcExtrude::openADIOS(std::string filename)
   diag = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
   int numTimeSteps;
 
-  fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("SST"));
-  fileIO->SetEngine("SST");
+  fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("BP"));
+  fileIO->SetEngine("BP");
   diagIO = std::make_unique<adios2::IO>(diag->DeclareIO("BP"));
   diagIO->SetEngine("BP");
   meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));

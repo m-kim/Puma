@@ -124,10 +124,10 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
 }
 void display(int x, int y)
 {
-    if (exrt->fileReader->BeginStep() == adios2::StepStatus::OK){
-        exrt->readMesh();
-        exrt->fileReader->EndStep();
-    }
+    // if (exrt->fileReader->BeginStep() == adios2::StepStatus::OK){
+         exrt->readMesh();
+    //     exrt->fileReader->EndStep();
+    // }
     try{
         int cnt = 0;
         while(exrt->fileReader->BeginStep() ==adios2::StepStatus::OK){
@@ -191,9 +191,6 @@ int main(int argc, char **argv)
   //TODO: need diag
   exrt->initializeReaders(meshopen, meshopen);
   display(std::get<0>(tups), std::get<1>(tups));
-  exrt->fileReader->Close();
-
-  MPI_Finalize();
 
 }
 
