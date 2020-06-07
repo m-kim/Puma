@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 
   exrt->openADIOS(fileopen);
   //TODO: need diag
-  exrt->initializeReaders(meshopen, meshopen);
+  exrt->initializeReaders(meshopen, diagopen);
   display(std::get<0>(tups), std::get<1>(tups));
 
 }
