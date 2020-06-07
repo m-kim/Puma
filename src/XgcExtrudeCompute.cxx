@@ -6,6 +6,7 @@ void XgcExtrudeCompute::initializeReaders(std::string meshName, std::string diag
 {
     //fileReader->BeginStep(adios2::StepMode::Read, 0.0f);
 
+    diagReader = std::make_unique<adios2::Engine>(diagIO->Open(diagName, adios2::Mode::Read));
     meshReader = std::make_unique<adios2::Engine>(meshIO->Open(meshName, adios2::Mode::Read));
     
     adios2::Variable<int> nVar = meshIO->InquireVariable<int>("n_n");
@@ -75,15 +76,19 @@ void XgcExtrudeCompute::readMesh()
 void XgcExtrudeCompute::readValues()
 {
 
-    auto var = fileIO->InquireVariable<double>("dpot");
-    std::vector<double> buff;
-    fileReader->Get(var, buff,adios2::Mode::Sync);
-    auto dpot = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On );
+    // auto var = fileIO->InquireVariable<double>("dpot");
+    // std::vector<double> buff;
+    // fileReader->Get(var, buff,adios2::Mode::Sync);
+    // auto dpot = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On );
+
+    vtkm::cont::ArrayHandle<double> temperature;
+
+    auto output =  GetiTurbulence(temperature);
 
     ds = vtkm::cont::DataSet();
     ds.AddCoordinateSystem(vtkm::cont::CoordinateSystem("coords", coords));
     ds.SetCellSet(cells);
 
-    ds.AddField(vtkm::cont::make_FieldPoint("pointvar",  dpot));
+    ds.AddField(vtkm::cont::make_FieldPoint("pointvar",  output));
     
 }

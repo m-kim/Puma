@@ -58,41 +58,42 @@ XgcExtrude::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
     vtkm::cont::ArrayHandle<double> pot0, potm0, dpot, psi;
     auto vard = fileIO->InquireVariable<double>("dpot");
     fileReader->Get(vard, buff, adios2::Mode::Sync);
-    dpot = vtkm::cont::make_ArrayHandle(buff);
+    dpot = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
     
    auto varP0 = fileIO->InquireVariable<double>("pot0");
    auto varPm0 = fileIO->InquireVariable<double>("potm0");
-   auto vpsi = fileIO->InquireVariable<double>("psi");
+   auto vpsi = diagIO->InquireVariable<double>("psi");
    auto vmks = diagIO->InquireVariable<double>("psi_mks");
    auto vdens = diagIO->InquireVariable<double>("i_gc_density_1d");
    auto vtemp1 = diagIO->InquireVariable<double>("i_perp_temperature_df_1d");
    auto vtemp2 = diagIO->InquireVariable<double>("i_parallel_mean_en_df_1d");
 
-    if (!varP0 || !varPm0 || !vpsi || !vmks || !vdens || !vtemp1 || !vtemp2)
+    if (!varP0 || !varPm0 || !vpsi || !vmks || !vdens || !vtemp1 || !vtemp2){
         return dpot;
+    }
     
    fileReader->Get(varP0, buff, adios2::Mode::Sync);
-   pot0 = vtkm::cont::make_ArrayHandle(buff);
+   pot0 = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
    fileReader->Get(varPm0, buff, adios2::Mode::Sync);
-   potm0 = vtkm::cont::make_ArrayHandle(buff);
+   potm0 = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
-   fileReader->Get(vpsi, buff, adios2::Mode::Sync);
-   psi = vtkm::cont::make_ArrayHandle(buff);
+   diagReader->Get(vpsi, buff, adios2::Mode::Sync);
+   psi = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
    vtkm::cont::ArrayHandle<double> psid, dens, temp1, temp2;
    diagReader->Get(vmks, buff, adios2::Mode::Sync);
-   psid = vtkm::cont::make_ArrayHandle(buff);
+   psid = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
    diagReader->Get(vdens, buff, adios2::Mode::Sync);
-   dens = vtkm::cont::make_ArrayHandle(buff);
+   dens = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
    diagReader->Get(vtemp1, buff, adios2::Mode::Sync);
-   temp1 = vtkm::cont::make_ArrayHandle(buff);
+   temp1 = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
    diagReader->Get(vtemp2, buff, adios2::Mode::Sync);
-   temp2 = vtkm::cont::make_ArrayHandle(buff);
-
+   temp2 = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
+  
    vtkm::cont::ArrayHandle<double> temp;
    temp.Allocate(temp1.GetNumberOfValues());
    // temp.PrepareForInPlace(DeviceAdapter());
@@ -112,6 +113,7 @@ XgcExtrude::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
    auto de = doInterp.Run(psid, dens, psi);
 
    DoMean<double> doMean;
+
 
    DoiTurbulence<double> doTurb;
    auto arr = doTurb.Run(dpot,
