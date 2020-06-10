@@ -18,19 +18,24 @@
 
 #include <memory.h>
 
-class XgcExtrudeMesh : public XgcExtrude
+class XgcExtrudeMesh final : public XgcExtrude
 {
 public:
     vtkm::cont::ArrayHandle<vtkm::Id> wedgeConn;
     vtkm::cont::ArrayHandle<vtkm::Vec<double,3>> points;
 
-    void initializeReaders(std::string meshName, std::string diagName);
+    void initializeReaders(std::string mp, std::string mn, 
+                            std::string dp, std::string dn,
+                            MPI_Comm comm = MPI_COMM_WORLD);
 
     void readMesh();
 
     void readValues();
 
+    void close();
+
     vtkm::cont::ArrayHandle<double> coords;
+    std::string meshName, diagName;
 };
 
 #endif

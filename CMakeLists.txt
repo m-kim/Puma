@@ -7,6 +7,7 @@ enable_language(Fortran)
 find_package(VTKm REQUIRED)
 find_package(ADIOS2 REQUIRED)
 find_package(MPI REQUIRED)
+find_package(kittie REQUIRED)
 
 add_subdirectory(src)
 add_subdirectory(pumacli)

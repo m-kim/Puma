@@ -6,15 +6,18 @@
 #include <mpi.h>
 #include <vtkm/cont/DataSet.h>
 
-class XgcExtrudeCompute : public XgcExtrude
+class XgcExtrudeCompute final : public XgcExtrude
 {
 public:
-    void initializeReaders(std::string meshName, std::string diagName);
+    void initializeReaders(std::string mp, std::string mn,
+                            std::string dp, std::string dn,
+                            MPI_Comm comm = MPI_COMM_WORLD);
 
     void readMesh();
 
     void readValues();
 
+    void close();
     vtkm::cont::CellSetExtrude cells;
     vtkm::cont::ArrayHandleExtrudeCoords<double> coords;
 };

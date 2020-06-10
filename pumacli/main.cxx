@@ -15,6 +15,8 @@
 #include <vtkm/rendering/MapperRayTracer.h>
 #include <vtkm/rendering/Camera.h>
 
+#include <kittie.h>
+
 #include "XgcExtrudeMesh.h"
 #include "XgcExtrudeCompute.h"
 #include "TurbulenceWorklets.h"
@@ -29,9 +31,9 @@ parse(int argc, char **argv){
   std::string meshpathname, filepathname, filename, meshname;
   std::string diagpathname, diagname, extrudetype;
   diagpathname = filepathname = meshpathname = std::string("/home/adios/adiosvm/Tutorial/xgc/totalf_itg_tiny/");
-  meshname = std::string("xgc.mesh.bp");
-  filename = std::string("xgc.3d.bp");
-  diagname = std::string("xgc.oneddiag.bp");
+  meshname = std::string("xgc.mesh");
+  filename = std::string("xgc");
+  diagname = std::string("xgc.oneddiag");
   extrudetype = std::string("compute");
 
   for (int i=1; i<argc; i++){
@@ -124,32 +126,41 @@ inline void SetCamera(vtkm::rendering::Camera& camera,
 }
 void display(int x, int y)
 {
+
     // if (exrt->fileReader->BeginStep() == adios2::StepStatus::OK){
          exrt->readMesh();
     //     exrt->fileReader->EndStep();
     // }
+
     try{
         int cnt = 0;
-        while(exrt->fileReader->BeginStep() ==adios2::StepStatus::OK){
-            exrt->readValues();
-            vtkm::rendering::Camera camera;
-            vtkm::cont::ColorTable colorTable("inferno");
+        while(true){
+          auto status = exrt->beginStep();
 
-            std::string fieldNm("pointvar");
-            vtkm::rendering::MapperRayTracer mapper;
-            vtkm::rendering::Color background(1.0f, 1.0f, 1.0f, 1.0f);
-            vtkm::rendering::Color foreground(0.0f, 0.0f, 0.0f, 1.0f);
-            vtkm::rendering::CanvasRayTracer canvas(x,y);
-            vtkm::rendering::Scene scene;
-            scene.AddActor(vtkm::rendering::Actor(exrt->ds.GetCellSet(),
-                                                  exrt->ds.GetCoordinateSystem(),
-                                                  exrt->ds.GetField(fieldNm),
-                                                  colorTable));
-            SetCamera(camera, exrt->ds.GetCoordinateSystem().GetBounds(),
-                      exrt->ds.GetField(fieldNm));
+          if (status == adios2::StepStatus::NotReady)
+            continue;
+          else if (status != adios2::StepStatus::OK)
+            break;
 
-            vtkm::rendering::View3D view(scene, mapper, canvas, camera, background, foreground );
-            view.Initialize();
+          exrt->readValues();
+          vtkm::rendering::Camera camera;
+          vtkm::cont::ColorTable colorTable("inferno");
+
+          std::string fieldNm("pointvar");
+          vtkm::rendering::MapperRayTracer mapper;
+          vtkm::rendering::Color background(1.0f, 1.0f, 1.0f, 1.0f);
+          vtkm::rendering::Color foreground(0.0f, 0.0f, 0.0f, 1.0f);
+          vtkm::rendering::CanvasRayTracer canvas(x,y);
+          vtkm::rendering::Scene scene;
+          scene.AddActor(vtkm::rendering::Actor(exrt->ds.GetCellSet(),
+                                                exrt->ds.GetCoordinateSystem(),
+                                                exrt->ds.GetField(fieldNm),
+                                                colorTable));
+          SetCamera(camera, exrt->ds.GetCoordinateSystem().GetBounds(),
+                    exrt->ds.GetField(fieldNm));
+
+          vtkm::rendering::View3D view(scene, mapper, canvas, camera, background, foreground );
+          view.Initialize();
           view.Paint();
           std::stringstream sstr;
           sstr << "output-";
@@ -158,18 +169,17 @@ void display(int x, int y)
               view.SaveAs(sstr.str());
 
             //renderer->Display(ds, canvas, fieldNm);
-            exrt->fileReader->EndStep();
+            exrt->endStep();
             cnt++;
         }
-        exrt->fileReader->Close();
-        MPI_Finalize();
+        exrt->close();
+        kittie::finalize();
     }
     catch(int e){
-        exrt->fileReader->EndStep();
-        exrt->fileReader->Close();
-        MPI_Finalize();
+        exrt->endStep();
+        exrt->close();
+        kittie::finalize();
     }
-
 }
 
 
@@ -177,9 +187,7 @@ void display(int x, int y)
 int main(int argc, char **argv)
 {
   auto tups = parse(argc, argv);
-  auto meshopen = std::get<2>(tups) + std::get<3>(tups);
-  auto fileopen = std::get<4>(tups) + std::get<5>(tups);
-  auto diagopen = std::get<6>(tups) + std::get<7>(tups);
+
 //    renderer = std::make_unique<VTKmXeusRender>();
    MPI_Init(NULL,NULL);
   if (std::get<8>(tups))
@@ -187,9 +195,12 @@ int main(int argc, char **argv)
   else
   exrt = std::make_unique<XgcExtrudeCompute>();
 
-  exrt->openADIOS(fileopen);
+  exrt->openADIOS(std::get<4>(tups), std::get<5>(tups));
   //TODO: need diag
-  exrt->initializeReaders(meshopen, diagopen);
+
+  exrt->initializeReaders(std::get<2>(tups), std::get<3>(tups), 
+                          std::get<6>(tups), std::get<7>(tups));
+
   display(std::get<0>(tups), std::get<1>(tups));
 
 }
