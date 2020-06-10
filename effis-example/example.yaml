@@ -1,0 +1,46 @@
+jobname: simple
+rundir: runs/run-1
+
+machine:
+  name: local
+
+run:
+
+        #  writer:
+        #    processes: 1
+        #    processes-per-node: 1
+        #    executable_path: writer
+        #    .Jabberwocky:
+        #      output_path: test-file.bp
+        #      adios_engine: SST
+
+  vtkm:
+    executable_path: /home/mark/Projects/Puma/build/wsl/Debug/pumacli/pumacli
+    commandline_args: 
+    - -meshname
+    - xgc.mesh
+    - -meshpathname
+    - /mnt/c/Users/mark/Desktop/xgc-gene/
+    - -diagname
+    - xgc.oneddiag
+    - -diagpathname
+    - /mnt/c/Users/mark/Desktop/xgc-gene/
+    - -filename
+    - xgc.3d.00015
+    - -filepathname
+    - /mnt/c/Users/mark/Desktop/xgc-gene/
+
+    processes: 1
+    processes-per-node: 1
+    
+    groups:
+      xgc.oneddiag:
+        engine: BPFile
+        filename: /mnt/c/Users/mark/Desktop/xgc-gene/xgc.oneddiag.bp
+      xgc.3d:
+        engine: BPFile
+        filename: /mnt/c/Users/mark/Desktop/xgc-gene/xgc.3d.00015.bp
+      xgc.mesh:
+        engine: BPFile
+        filename: /mnt/c/Users/mark/Desktop/xgc-gene/xgc.mesh.bp
+
