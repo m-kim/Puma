@@ -86,7 +86,7 @@ XgcExtrude::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
     
    auto varP0 = fileIO.InquireVariable<double>("pot0");
    auto varPm0 = fileIO.InquireVariable<double>("potm0");
-   auto vpsi = diagIO.InquireVariable<double>("psi");
+   auto vpsi = meshIO.InquireVariable<double>("psi");
    auto vmks = diagIO.InquireVariable<double>("psi_mks");
    auto vdens = diagIO.InquireVariable<double>("i_gc_density_1d");
    auto vtemp1 = diagIO.InquireVariable<double>("i_perp_temperature_df_1d");
@@ -128,7 +128,7 @@ XgcExtrude::GetiTurbulence(vtkm::cont::ArrayHandle<double> &temperature)
    fileReader.Get(varPm0, buff, adios2::Mode::Sync);
    potm0 = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
-   fileReader.Get(vpsi, buff, adios2::Mode::Sync);
+   meshReader.Get(vpsi, buff, adios2::Mode::Sync);
    psi = vtkm::cont::make_ArrayHandle(buff, vtkm::CopyFlag::On);
 
    vtkm::cont::ArrayHandle<double> psid, dens, temp1, temp2;
