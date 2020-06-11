@@ -14,6 +14,7 @@
 #include <vtkm/rendering/Scene.h>
 #include <vtkm/rendering/MapperRayTracer.h>
 #include <vtkm/rendering/Camera.h>
+#include <vtkm/cont/ColorTable.h>
 
 #include <kittie.h>
 
@@ -23,7 +24,38 @@
 
 std::unique_ptr<XgcExtrude> exrt;
 
+vtkm::cont::ColorTable makeColorTableHotDesaturated()
+{
+  /* Hot desaturated */
+static const float ct_hot_desaturated[] = {
+    0.0f,   0.28f, 0.28f, 0.86f,
+    0.143f, 0.f,   0.f,   0.36f,
+    0.285f, 0.f,   1.f,   1.f,
+    0.429f, 0.f,   0.5f,  0.f,
+    0.571f, 1.f,   1.f,   0.f,
+    0.714f, 1.f,   0.38f, 0.f,
+    0.857f, 0.42f, 0.f,   0.f,
+    1.0f,   0.88f, 0.3f,  0.3f,
+    };
+  std::vector<double> rgb(8*3);
+  std::vector<double> alpha(8);
 
+  for (int i=0; i<alpha.size(); i++){
+    rgb[i*3] = ct_hot_desaturated[i*4];
+    rgb[i*3+1] = ct_hot_desaturated[i*4+1];
+    rgb[i*3+2] = ct_hot_desaturated[i*4+2];
+    alpha[i] = ct_hot_desaturated[i*4+3];
+  }
+  
+  
+
+  return vtkm::cont::ColorTable("ct_hot_desaturated",
+                            vtkm::cont::ColorSpace::RGB,
+                            vtkm::Vec<double,3>(0,0,0),
+                            rgb, alpha);
+
+
+}
 const auto
 parse(int argc, char **argv){
   int x = 128;
@@ -144,7 +176,7 @@ void display(int x, int y)
 
           exrt->readValues();
           vtkm::rendering::Camera camera;
-          vtkm::cont::ColorTable colorTable("inferno");
+          vtkm::cont::ColorTable colorTable = makeColorTableHotDesaturated();
 
           std::string fieldNm("pointvar");
           vtkm::rendering::MapperRayTracer mapper;
