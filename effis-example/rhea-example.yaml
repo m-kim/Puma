@@ -1,0 +1,43 @@
+jobname: simple
+walltime: 3600
+rundir: runs/run-4
+
+machine:
+  name: rhea
+  queue: batch
+  charge: csc143
+
+run:
+  vtkm:
+    executable_path: /ccs/home/kimm/Puma/build/pumacli/pumacli
+    commandline_args: 
+    - -meshname
+    - xgc.mesh
+    - -meshpathname
+    - /gpfs/alpine/proj-shared/csc143/jyc/summit/exp-d3d-deeplearning/xgc_base_mark/ 
+    - -diagname
+    - xgc.oneddiag
+    - -diagpathname
+    - /gpfs/alpine/proj-shared/csc143/jyc/summit/exp-d3d-deeplearning/xgc_base_mark/ 
+    - -filename
+    - xgc.3d
+    - -filepathname
+    - /gpfs/alpine/proj-shared/csc143/jyc/summit/exp-d3d-deeplearning/xgc_base_mark/ 
+    - -x 
+    - 512
+    - -y
+    - 512
+    processes: 1
+    processes-per-node: 1
+    
+    groups:
+      xgc.oneddiag:
+        engine: BPFile
+        filename: /gpfs/alpine/proj-shared/csc143/jyc/summit/exp-d3d-deeplearning/xgc_base_mark/xgc.oneddiag.bp
+      xgc.3d:
+        engine: BPFile
+        filename: /gpfs/alpine/proj-shared/csc143/jyc/summit/exp-d3d-deeplearning/xgc_base_mark/xgc.3d.bp
+      xgc.mesh:
+        engine: BPFile
+        filename: /gpfs/alpine/proj-shared/csc143/jyc/summit/exp-d3d-deeplearning/xgc_base_mark/xgc.mesh.bp
+
