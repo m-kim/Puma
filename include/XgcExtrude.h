@@ -34,9 +34,9 @@ public:
     virtual void close();
 
     virtual adios2::Engine kopen(adios2::IO io, std::string fp, std::string fn, adios2::Mode mode, MPI_Comm comm){
-        return io.Open(fp+fn+".bp", adios2::Mode::Read);
+        //return io.Open(fp+fn+".bp", adios2::Mode::Read);
 
-        //return kittie::open(fn, fp+fn + ".bp", adios2::Mode::Read, comm);
+        return kittie::open(fn, fp+fn + ".bp", adios2::Mode::Read, comm);
     }
 
     virtual adios2::IO kdeclare_io(adios2::ADIOS &ad, std::string name)
