@@ -4,6 +4,7 @@
 
 #include <vtkm/cont/DataSet.h>
 #include <adios2.h>
+#include <kittie.h>
 
 class XgcExtrude
 {

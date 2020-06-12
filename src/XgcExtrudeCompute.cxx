@@ -7,8 +7,8 @@ void XgcExtrudeCompute::initializeReaders(std::string mp, std::string mn,
                                             std::string dp, std::string dn,
                                             MPI_Comm comm)
 {
-    diagname = dp+dn;
-    meshname = mp+mn;
+    diagname = dn;
+    meshname = mn;
     diagIO = kdeclare_io(this->diag, diagname);
     meshIO = kdeclare_io(this->mesh, meshname);
     diagReader = kopen(diagIO, dp, dn, adios2::Mode::Read, comm);
