@@ -6,26 +6,15 @@
 void XgcExtrude::openADIOS(std::string fp, std::string fn, MPI_Comm comm)
 {
   filename = fn;
-  kittie::initialize(comm, adios2::DebugON);
-  adios = adios2::ADIOS(comm);
-  mesh = adios2::ADIOS(comm);
-  diag = adios2::ADIOS(comm);
-  int numTimeSteps;
 
-  // if (kittie_found){
-  //   fileIO = std::make_unique<adios2::IO>(adios->DeclareIO("BP"));
-  //   fileIO->SetEngine("BP");
-  //   diagIO = std::make_unique<adios2::IO>(diag->DeclareIO("BP"));
-  //   diagIO->SetEngine("BP");
-  //   meshIO = std::make_unique<adios2::IO>(mesh->DeclareIO("BP"));
-  //   meshIO->SetEngine("BP");
+  kinit(comm);
 
-  fileIO = kittie::declare_io(filename);
+  fileIO = kdeclare_io(adios, filename);
 
 
 
 
-   fileReader = kittie::open(filename, fp+filename + ".bp", adios2::Mode::Read, comm);
+   fileReader = kopen(fileIO, fp, fn, adios2::Mode::Read, comm);
   std::cout << "Open " << filename << std::endl;
   std::cout << __FILE__ << " " << __LINE__ << std::endl;
 

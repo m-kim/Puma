@@ -11,12 +11,12 @@ void XgcExtrudeMesh::initializeReaders(std::string mp, std::string mn,
     kittie::Couplers[filename]->begin_step(0.0f);
     this->fileReader = kittie::Couplers[filename]->engine;
 
-    diagIO = kittie::declare_io(diagName);
-    meshIO = kittie::declare_io(meshName);
+    diagIO = kdeclare_io(diag, diagName);
+    meshIO = kdeclare_io(mesh, meshName);
 
 
-    diagReader = kittie::open(diagName, dp+diagName + ".bp", adios2::Mode::Read, comm);
-    meshReader = kittie::open(meshName, mp+meshName + ".bp", adios2::Mode::Read, comm);
+    diagReader = kopen(diagIO, diagName, dp+diagName + ".bp", adios2::Mode::Read, comm);
+    meshReader = kopen(meshIO, meshName, mp+meshName + ".bp", adios2::Mode::Read, comm);
     
     adios2::Variable<int> nVar = meshIO.InquireVariable<int>("n_n");
     adios2::Variable<int> triVar = meshIO.InquireVariable<int>("n_t");

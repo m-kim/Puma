@@ -7,19 +7,12 @@ void XgcExtrudeCompute::initializeReaders(std::string mp, std::string mn,
                                             std::string dp, std::string dn,
                                             MPI_Comm comm)
 {
-    // if(kittie_found){
-    //     diagReader = adios2::Engine(diagIO.Open(dp+dn+".bp", adios2::Mode::Read));
-    //     meshReader = adios2::Engine(meshIO.Open(mp+mn+".bp", adios2::Mode::Read));
-
-    // }
-
-
     diagname = dp+dn;
     meshname = mp+mn;
-    diagIO = kittie::declare_io(diagname);
-    meshIO = kittie::declare_io(meshname);
-    diagReader = kittie::open(diagname, dp+dn+".bp", adios2::Mode::Read);
-    meshReader = kittie::open(meshname, mp+mn+".bp", adios2::Mode::Read);
+    diagIO = kdeclare_io(this->diag, diagname);
+    meshIO = kdeclare_io(this->mesh, meshname);
+    diagReader = kopen(diagIO, dp, dn, adios2::Mode::Read, comm);
+    meshReader = kopen(meshIO, mp, mn, adios2::Mode::Read, comm);
 
 
 
