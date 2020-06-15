@@ -1,4 +1,23 @@
 # Puma: a microservice of extruded visualization (VTK-m) for fusion tokamak simulation (WDM)
+## Why extruded mesh visualization?
+XGC is a edge-fusion tokamak simulation code developed by the Department of Energy. It outputs what it calls an "rz" mesh, which be reconstructed into a 3D mesh such that:
+
+```
+auto pt = vtkm::Vec3f(r, phi, z);
+```
+where ```phi``` is 
+```
+auto phi = whichPlane * (vtkm::TwoPi() / NumberOfPlanes);
+```
+
+A tokamak is donut shaped, but in the previous code it's represented in cylindrical form rather than donut form. Further, there are a certain number of planes that represent the tokamak, and phi is dependent on which plane which "rz" point is currently being converted from the "rz" space to the XYZ-space. If we wanted it to be a donut shape, then the pt would be located in the XYZ-space as:
+
+```
+auto tp = vtkm::Vec3f(r * vtkm::Cos(phi), r * vtkm::Sin(phi), z);
+```
+
+Previously, converting the RZ-space representation to an XYZ-space representation meant building the complete triangular mesh. Now, VTK-m can construct the extruded mesh on-the-fly, without having to construct the full representation. This reduces bandwidth and memory costs.
+
 ## Installation
 The easiest way to install Puma dependencies is to use [Spack](www.spack.io). We'll start there. First install spack.
 ```
