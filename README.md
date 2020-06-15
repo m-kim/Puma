@@ -30,14 +30,14 @@ There are a couple things that I should note. One, OpenMPI seems to be having pr
 spack install codar-cheetah
 ```
 
-There's a problem with that as well, because codar-cheetah needs python3. This can be problematic if you have code that needs python2 or running on rhea because it doesn't have python3. So, I like (and [Eric](https://github.com/suchyta1/)) like to install local version of both pythons. I'll leave that as an exercise to the reader. 
+There's a problem with that as well, because codar-cheetah needs python3. This can be problematic if you have code that needs python2 or running on rhea because it doesn't have python3. So, I (and [Eric](https://github.com/suchyta1/)) like to install local version of both pythons. I'll leave that as an exercise to the reader. 
 
 Once those are installed, install the customized VTK-m:
 ```
 spack install mvtkm
 ```
 
-### Puma Installation
+## Puma Installation
 Now that all the pre-requisites are setup, let's install Puma:
 ```
 git clone git@github.com:m-kim/Puma.git
@@ -54,8 +54,11 @@ cmake ../
 make -j
 ```
 
-## Running
-Congratulations, you've installed Puma. How do you run it? That's a great question, there are two example files in the ```effis-examples``` directory to help you out. The first one is called, simply enough, ```example.yaml.``` I used this one to test at home using data generated on sdg-tm76. To use effis, first the ```example.yaml``` needs to be "composed." This sets up the directories and cheetah to run. 
+## Running Puma
+Congratulations, you've installed Puma. How do you run it? That's a great question, there are two example files in the ```effis-examples``` directory to help you out. 
+
+### example.yaml
+The first one is called, simply enough, ```example.yaml.``` I used this one to test at home using data generated on sdg-tm76. To use effis, first the ```example.yaml``` needs to be "composed." This sets up the directories and cheetah to run. 
 ```
 effis-compose.py example.yaml
 ```
@@ -67,8 +70,16 @@ effis-submit runs/run-1
 
 Note, the directory that was created in the ```compose``` stage is now passed as *cli* to ```effis-submit.``` This will launch Puma in the background.
 
-## example.yaml
+### rhea-example.yaml
+
+Another effis composition file is ```rhea-example.yaml.``` This will launch Puma as a batch service through Cheetah (via slurm) on rhea, automatcially. The time out is set to ```3600```, and the charge code is setup to the SDG charge code. This looks for the specific files in a particular location on the fileserve.
+
+#### Note about rhea
+It's easier to install your own local pythons, both 2 and 3, and setup $SPACK_LOCATION/etc/packages.yaml to point to those directories. Also, CMake currently seems to have some issues with MPI (for example, [discourse discussion](https://discourse.cmake.org/t/cmake-cannot-find-mpi-in-standard-installation-path/850), [#18196](https://gitlab.kitware.com/cmake/cmake/-/issues/18196) ). My build workflow has been: install through spack ```effis@develop^mpich```, ```codar-cheetah``` and  ```mvtkm+mpi^mpich```. Then, I build ```puma```, which usually produces a MPI_C_FOUND, MPI_CXX_FOUND error). I run ```module load openmpi``` and ```module unload openmpi```, run cmake again and everything runs. ¯\\_(ツ)_/¯ This has been the most consistent approach to getting up and running on rhea.
+
+### Puma specific yaml
 Most of this should be explained in the effis documentation. Specifically for Puma, Puma needs to file names and path names. These should be passed in like this:
+
 
 ```
 executable_path: /home/mark/Projects/Puma/build/wsl/Debug/pumacli/pumacli
@@ -88,13 +99,15 @@ executable_path: /home/mark/Projects/Puma/build/wsl/Debug/pumacli/pumacli
 ```
 Note, the ```-meshname,``` ```-diagname``` and ```-filename``` variables do not end in ```.bp.``` 
 
+
 ## Output
 Currently, the output is ```output-#.pnm``` i.e. pnm files. 
 
-### Can I run Puma by itself?
+## Can I run Puma by itself?
 No. Although Puma takes all it's files and paths in through the *cli*, it depends on kittie infrastructure to run. Kittie sets up a lot of bash variables in the background to ensure the workflow is composed correctly. It cannot be run by itself.
 
-### No really, can I run Puma myself?
+## No really, can I run Puma myself?
 Yes, by going into the code and switching out the kittie for ADIOS calls.
 
 # Conclusion
+Puma is a visualization microservice for WDM using effis/kittie. By integrating kittie directly into Puma, it should allow for more flexible workflow management.
