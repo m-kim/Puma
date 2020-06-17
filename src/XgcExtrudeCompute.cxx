@@ -1,7 +1,11 @@
 #include "XgcExtrudeCompute.h"
 #include <vtkm/cont/ArrayHandleExtrudeCoords.h>
 #include <vtkm/cont/CellSetExtrude.h>
+#include <vtkm/filter/ClipWithField.h>
+
 #include <kittie.h>
+
+
 
 void XgcExtrudeCompute::initializeReaders(std::string mp, std::string mn,
                                             std::string dp, std::string dn,
@@ -80,6 +84,24 @@ void XgcExtrudeCompute::readMesh()
 }
 
 
+void XgcExtrudeCompute::clip(vtkm::cont::ArrayHandle<double> output)
+{
+    vtkm::filter::ClipWithField clip;
+    clip.SetClipValue(0.1);
+    clip.SetActiveField("pointvar");
+    vtkm::cont::DataSet ret;
+    ret.AddCoordinateSystem(vtkm::cont::CoordinateSystem("coords", coords));
+    ret.SetCellSet(cells);
+    ret.AddField(vtkm::cont::make_FieldPoint("pointvar",  output));
+    ds = clip.Execute(ret);
+}
+
+vtkm::cont::ArrayHandleTransform<vtkm::cont::ArrayHandle<double>, internal::Clamp<double>> 
+    XgcExtrudeCompute::clamp(vtkm::cont::ArrayHandle<double> output)
+{
+    internal::Clamp<double> functor(-0.5, 0.5);
+    return vtkm::cont::make_ArrayHandleTransform(output, functor);
+}
 
 void XgcExtrudeCompute::readValues()
 {
@@ -91,14 +113,13 @@ void XgcExtrudeCompute::readValues()
 
     vtkm::cont::ArrayHandle<double> temperature;
 
-    auto output =  GetiTurbulence(temperature);
+    //auto output =  GetiTurbulence(temperature);
+    auto output = clamp(GetiTurbulence(temperature));
 
     ds = vtkm::cont::DataSet();
     ds.AddCoordinateSystem(vtkm::cont::CoordinateSystem("coords", coords));
     ds.SetCellSet(cells);
-
     ds.AddField(vtkm::cont::make_FieldPoint("pointvar",  output));
-    
 }
 
 void XgcExtrudeCompute::close()
