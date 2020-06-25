@@ -22,3 +22,13 @@ target_link_libraries(puma PUBLIC
     MPI::MPI_CXX
     MPI::MPI_Fortran
     adios2::adios2 )
+
+if (VTKm_ENABLE_CUDA)
+  set_source_files_properties(${SOURCE_LIST} PROPERTIES LANGUAGE "CUDA")
+  set_target_properties(puma PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+  set_target_properties(puma PROPERTIES CUDA_STANDARD 14)
+
+  target_link_libraries(puma PUBLIC vtkm::cuda)
+    
+endif(VTKm_ENABLE_CUDA)
+
